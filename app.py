@@ -1,48 +1,52 @@
 import streamlit as st
-from pages import home, schedule, cuisine, dietary, meals, nutrition, spending, profile
 
-st.set_page_config(page_title="NutriPlanner", layout="wide")
+# ---------- CONFIG ----------
+st.set_page_config(
+    page_title="NutriPlanner",
+    page_icon="🥗",
+    layout="wide"
+)
 
-# Sidebar styling
+# ---------- CLEAN UI ----------
 st.markdown("""
 <style>
-section[data-testid="stSidebar"] {
-    background-color: #1f4e79;
-}
-.sidebar-text {
-    color: white;
-    font-size: 16px;
-}
-.active {
-    color: orange;
-    font-weight: bold;
-}
+#MainMenu {visibility: hidden;}
+[data-testid="stHeader"] {display:none;}
+footer {visibility:hidden;}
+.block-container {padding-top:1rem;}
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Navigation
-st.sidebar.title("NutriPlanner")
+# ---------- SESSION STATE ----------
+if "meals" not in st.session_state:
+    st.session_state.meals = {
+        "Breakfast": "Yogurt",
+        "Lunch": "Chicken Salad",
+        "Dinner": "Tacos"
+    }
 
-page = st.sidebar.radio(
-    "Go to",
-    ["Home", "Schedule", "Cuisine Preferences", "Dietary Restrictions",
-     "Meals", "Nutrition Facts", "Spending", "Profile"]
-)
+# ---------- NAVIGATION ----------
+pages = {
+    "Main": [
+        st.Page("pages/home.py", title="Home", icon="🏠"),
+        st.Page("pages/schedule.py", title="Schedule", icon="📅"),
+        st.Page("pages/meals.py", title="Meals", icon="🍽️"),
+    ],
 
-# Routing
-if page == "Home":
-    home.show()
-elif page == "Schedule":
-    schedule.show()
-elif page == "Cuisine Preferences":
-    cuisine.show()
-elif page == "Dietary Restrictions":
-    dietary.show()
-elif page == "Meals":
-    meals.show()
-elif page == "Nutrition Facts":
-    nutrition.show()
-elif page == "Spending":
-    spending.show()
-elif page == "Profile":
-    profile.show()
+    "Preferences": [
+        st.Page("pages/preferences/cuisine.py", title="Cuisine Preferences", icon="🍜"),
+        st.Page("pages/preferences/dietary.py", title="Dietary Restrictions", icon="🥑"),
+    ],
+
+    "Analytics": [
+        st.Page("pages/analytics/nutrition.py", title="Nutrition Facts", icon="📊"),
+        st.Page("pages/analytics/spending.py", title="Spending", icon="💰"),
+    ],
+
+    "Account": [
+        st.Page("pages/profile.py", title="Profile", icon="👤"),
+    ]
+}
+
+nav = st.navigation(pages)
+nav.run()

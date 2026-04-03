@@ -1,0 +1,42 @@
+import streamlit as st
+
+st.title("Cuisine Preferences", text_alignment="center")
+
+# ---------- ALL CUISINES ----------
+all_cuisines = ["Italian","Asian","Mexican","Indian","American", "French","Mediterranean","Thai","Greek","Spanish"]
+
+# ---------- SESSION STATE ----------
+if "selected_cuisines" not in st.session_state:
+    # default: ALL selected
+    st.session_state.selected_cuisines = all_cuisines.copy()
+
+if "select_all" not in st.session_state:
+    st.session_state.select_all = True
+
+# ---------- CALLBACKS ----------
+def toggle_select_all():
+    if st.session_state.select_all:
+        st.session_state.selected_cuisines = all_cuisines.copy()
+    else:
+        st.session_state.selected_cuisines = []
+
+
+def update_selected():
+    # keep checkbox synced with multiselect
+    st.session_state.select_all = (
+        set(st.session_state.selected_cuisines) == set(all_cuisines)
+    )
+
+# ---------- UI ----------
+st.checkbox(
+    "Select All",
+    key="select_all",
+    on_change=toggle_select_all
+)
+
+st.multiselect(
+    "Selected Cuisines",
+    options=all_cuisines,
+    key="selected_cuisines",
+    on_change=update_selected
+)

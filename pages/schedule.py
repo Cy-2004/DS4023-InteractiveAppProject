@@ -1,13 +1,160 @@
 import streamlit as st
+import pandas as pd
 
-def show():
-    st.title("Schedule")
+st.title("Schedule", text_alignment="center")
 
-    tab1, tab2 = st.tabs(["Meal Schedule", "Class Schedule"])
+# ---------- SESSION STATE ----------
+if "meal_schedule" not in st.session_state:
+    st.session_state.meal_schedule = {}
 
-    with tab1:
-        st.write("Weekly Meal Plan")
-        st.radio("Select Day", ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"])
+if "class_schedule" not in st.session_state:
+    st.session_state.class_schedule = {}
 
-    with tab2:
-        st.write("Class Schedule")
+if "edit_meal" not in st.session_state:
+    st.session_state.edit_meal = False
+
+if "edit_class" not in st.session_state:
+    st.session_state.edit_class = False
+
+if "message" not in st.session_state:
+    st.session_state.message = None
+
+# ---------- CONSTANTS ----------
+days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+meals = ["Breakfast","Lunch","Dinner"]
+
+# ---------- TAB STYLE (CENTERED) ----------
+st.markdown("""
+<style>
+.stTabs [data-baseweb="tab-list"] {
+    justify-content: space-around;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+[data-testid="stDataFrame"] div {
+    white-space: normal !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["Meal Schedule", "Class Schedule"])
+
+if st.session_state.message:
+    st.success(st.session_state.message)
+    st.session_state.message = None
+
+# =====================================================
+# 🍽️ MEAL SCHEDULE
+# =====================================================
+with tab1:
+
+    col1, col2 = st.columns([6,1])
+    with col1:
+        st.subheader("Meal Schedule")
+    with col2:
+        if st.button("Edit Meals"):
+            st.session_state.edit_meal = not st.session_state.edit_meal
+
+    # -------- DATAFRAME --------
+    meal_df = pd.DataFrame("", index=meals, columns=days)
+
+    for (day, meal), value in st.session_state.meal_schedule.items():
+        meal_df.loc[meal, day] = value
+
+    st.data_editor(meal_df, use_container_width=True, disabled=True)
+
+    # -------- EDIT PANEL --------
+    if st.session_state.edit_meal:
+        st.markdown("### Edit Meal")
+
+        selected_day = st.radio("Select Day", days, key="meal_day", horizontal=True)
+        selected_meal = st.radio("Select Meal", meals, key="meal_type", horizontal=True)
+
+        action = st.radio("Action", ["Add/Edit","Delete"], key="meal_action", horizontal=True)
+
+        if action == "Add/Edit":
+            meal_name = st.text_input("Enter Meal")
+
+            if st.button("Save Meal", key="save_meal_btn"):
+                if meal_name.strip() == "":
+                    st.error("Please enter a meal before saving.")
+                else:
+                    st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_name
+                    st.session_state.message = "Meal saved successfully!"
+                    st.rerun()
+
+        else:
+            if st.button("Delete Meal", key="delete_meal_btn"):
+                st.session_state.meal_schedule.pop((selected_day, selected_meal), None)
+                st.session_state.message = "Meal deleted successfully!"
+                st.rerun()
+
+# =====================================================
+# 📚 CLASS SCHEDULE
+# =====================================================
+with tab2:
+
+    col1, col2 = st.columns([6,1])
+    with col1:
+        st.subheader("Class Schedule")
+    with col2:
+        if st.button("Edit Classes"):
+            st.session_state.edit_class = not st.session_state.edit_class
+
+    # -------- DYNAMIC TIME RANGE --------
+    default_hours = list(range(8,17))
+
+    used_hours = [h for (_, h) in st.session_state.class_schedule.keys()]
+
+    if used_hours:
+        min_hour = min(min(used_hours), 8)
+        max_hour = max(max(used_hours)+1, 17)
+    else:
+        min_hour, max_hour = 8, 17
+
+    hours = list(range(min_hour, max_hour))
+
+    # -------- DATAFRAME --------
+    time_labels = [f"{h}:00-{h+1}:00" for h in hours]
+    class_df = pd.DataFrame("", index=time_labels, columns=days)
+
+    for (day, hour), value in st.session_state.class_schedule.items():
+        label = f"{hour}:00-{hour+1}:00"
+        if label in class_df.index:
+            class_df.loc[label, day] = value
+
+    st.data_editor(class_df, use_container_width=True, disabled=True)
+
+    # -------- EDIT PANEL --------
+    if st.session_state.edit_class:
+        st.markdown("### Edit Schedule")
+
+        selected_day = st.radio("Select Day", days, key="class_day", horizontal=True)
+
+        selected_hour = st.slider(
+            "Select Time (hour)",
+            0, 23, 8,
+            step=1
+        )
+
+        action = st.radio("Action", ["Add/Edit","Delete"], key="class_action", horizontal=True)
+
+        if action == "Add/Edit":
+            event = st.text_input("Enter Activity")
+
+            if st.button("Save Event", key="save_event_btn"):
+                if event.strip() == "":
+                    st.error("Please enter an activity before saving.")
+                else:
+                    st.session_state.class_schedule[(selected_day, selected_hour)] = event
+                    st.session_state.message = "Event saved successfully!"
+                    st.rerun()
+
+        else:
+            if st.button("Delete Event", key="delete_event_btn"):
+                st.session_state.class_schedule.pop((selected_day, selected_hour), None)
+                st.session_state.message = "Event deleted successfully!"
+                st.rerun()
