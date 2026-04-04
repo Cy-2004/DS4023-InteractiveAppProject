@@ -1,10 +1,53 @@
 import streamlit as st
 from datetime import date
+import pandas as pd
 
 st.title("Home", text_alignment="center")
 
+# ---------- SESSION STATE ----------
+if "meals_home" not in st.session_state:
+    st.session_state.meals_home = {
+        "Breakfast": "Yogurt with granola & strawberries",
+        "Lunch": "Chipotle Chicken & Macaroni salad",
+        "Dinner": "Beef tacos"
+    }
+
+if "grocery_df" not in st.session_state:
+    st.session_state.grocery_df = pd.DataFrame({
+        "Item": ["Item 1","Item 2","Item 3","Item 4","Item 5"],
+        "Price": [5.30,10,7.10,1.12,3.99]
+    })
+
+if "home_msg" not in st.session_state:
+    st.session_state.home_msg = None
+
+# ---------- STYLE ----------
+st.markdown("""
+<style>
+.blue-box {
+    background-color:#e6f2ff;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:15px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------- MESSAGE ----------
+if st.session_state.home_msg:
+    msg_type, msg = st.session_state.home_msg
+    if msg_type == "success":
+        st.success(msg)
+    elif msg_type == "warning":
+        st.warning(msg)
+    else:
+        st.error(msg)
+    st.session_state.home_msg = None
+
 # ---------- TODAY'S SCHEDULE ----------
 with st.container():
+    st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
+
     st.markdown(
         f"<h3 style='text-align:center;'>Today is {date.today().strftime('%A, %B %d, %Y')}</h3>",
         unsafe_allow_html=True
@@ -12,22 +55,49 @@ with st.container():
 
     col1, col2, col3 = st.columns(3)
 
-    meals = {
-        "Breakfast": "Yogurt with granola & strawberries",
-        "Lunch": "Chipotle Chicken & Macaroni salad",
-        "Dinner": "Beef tacos"
-    }
-
-    for col, (meal, desc) in zip([col1, col2, col3], meals.items()):
+    for col, meal in zip([col1, col2, col3], ["Breakfast","Lunch","Dinner"]):
         with col:
+
+            # init toggle
+            toggle_key = f"edit_toggle_{meal}"
+            if toggle_key not in st.session_state:
+                st.session_state[toggle_key] = False
+
+            current = st.session_state.meals_home.get(meal, "No meal planned yet")
+
             st.markdown(f"**Your {meal.lower()} plan is:**")
-            st.write(desc)
+            st.write(current)
 
-            if st.button(f"Edit", key=f"edit_{meal}"):
-                st.info(f"Editing {meal}")
+            # TOGGLE BUTTON
+            if st.button("Edit", key=f"toggle_{meal}"):
+                st.session_state[toggle_key] = not st.session_state[toggle_key]
 
-            if st.button(f"Delete", key=f"delete_{meal}"):
-                st.warning(f"{meal} deleted")
+            # EDIT
+            if st.session_state[toggle_key]:
+                new_val = st.text_input(
+                    "Edit meal",
+                    value="" if current == "No meal planned yet" else current,
+                    key=f"input_{meal}"
+                )
+
+                if st.button("Save", key=f"save_{meal}"):
+                    val = st.session_state.get(f"input_{meal}", "").strip()
+
+                    if val == "":
+                        st.session_state.home_msg = ("error", f"{meal} cannot be empty.")
+                    else:
+                        st.session_state.meals_home[meal] = val
+                        st.session_state.home_msg = ("success", f"{meal} updated!")
+                        st.session_state[f"edit_toggle_{meal}"] = False
+                    st.rerun()
+                
+            # DELETE
+            if st.button("Delete", key=f"delete_{meal}"):
+                st.session_state.meals_home[meal] = "No meal planned yet"
+                st.session_state.home_msg = ("warning", f"{meal} deleted.")
+                st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------- LOWER SECTION ----------
 left, right = st.columns([1,1])
@@ -35,34 +105,115 @@ left, right = st.columns([1,1])
 # ---------- GROCERY LIST ----------
 with left:
     with st.container():
+        st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
+
         st.markdown(
             "<h3 style='text-align:center;'>This Week’s Grocery List</h3>",
             unsafe_allow_html=True
         )
 
-        items = [
-            ("Item 1", 5.30),
-            ("Item 2", 10),
-            ("Item 3", 7.10),
-            ("Item 4", 1.12),
-            ("Item 5", 3.99)
-        ]
+        df = st.session_state.grocery_df
+        st.dataframe(df, use_container_width=True)
 
-        total = sum(price for _, price in items)
+        total = df["Price"].sum()
+        st.write(f"**Total: ${round(total,2)}**")
 
-        for name, price in items:
-            st.write(f"{name} - ${price}")
+        # TOGGLE
+        if "edit_grocery" not in st.session_state:
+            st.session_state.edit_grocery = False
 
-        col1, col2 = st.columns([3,1])
-        with col1:
-            st.write(f"**Total: ${round(total,2)}**")
-        with col2:
-            if st.button("Edit Grocery"):
-                st.info("Edit grocery list")
+        if st.button("Edit Grocery"):
+            st.session_state.edit_grocery = not st.session_state.edit_grocery
+        
+        if st.session_state.edit_grocery:
+            st.markdown("### Edit Grocery")
+
+            item_name = st.text_input("Item Name", key="item_name")
+            price = st.text_input("Price", key="item_price")
+
+            colA, colB, colC = st.columns(3)
+
+            if "grocery_msg" not in st.session_state:
+                st.session_state.grocery_msg = None
+
+            # ADD
+            with colA:
+                if st.button("Add"):
+                    name = item_name.strip()
+                    price_val = price.strip()
+
+                    if name == "" or price_val == "":
+                        st.session_state.grocery_msg = ("error", "Both fields required.")
+                    elif name in df["Item"].values:
+                        st.session_state.grocery_msg = ("warning", "Item already exists.")
+                    else:
+                        try:
+                            new_row = pd.DataFrame([[name, float(price_val)]], columns=["Item","Price"])
+                            st.session_state.grocery_df = pd.concat([df, new_row], ignore_index=True)
+                            st.session_state.grocery_msg = ("success", "Item added!")
+                        except:
+                            st.session_state.grocery_msg = ("error", "Price must be a number.")
+                    st.rerun()
+
+            # EDIT
+            with colB:
+                if st.button("Update"):
+                    name = item_name.strip()
+                    price_val = price.strip()
+
+                    if name == "" or price_val == "":
+                        st.session_state.grocery_msg = ("error", "Both fields required.")
+                    else:
+                        idx = df[df["Item"] == name].index
+
+                        if len(idx) > 0:
+                            try:
+                                st.session_state.grocery_df.loc[idx[0], "Price"] = float(price_val)
+                                st.session_state.grocery_msg = ("success", "Item updated!")
+                            except:
+                                st.session_state.grocery_msg = ("error", "Price must be a number.")
+                        else:
+                            st.session_state.grocery_msg = ("warning", "Item not found.")
+                    st.rerun()
+
+            # DELETE
+            with colC:
+                if st.button("Delete Item"):
+                    name = item_name.strip()
+
+                    if name == "":
+                        st.session_state.grocery_msg = ("error", "Enter item name.")
+                    else:
+                        idx = df[df["Item"] == name].index
+
+                        if len(idx) > 0:
+                            st.session_state.grocery_df = df.drop(idx[0])
+                            st.session_state.grocery_msg = ("warning", "Item deleted.")
+                        else:
+                            st.session_state.grocery_msg = ("warning", "Item not found.")
+                    st.rerun()
+            
+            # ---------- SHOW MESSAGE UNDER BUTTONS ----------
+            if st.session_state.grocery_msg:
+                msg_type, msg = st.session_state.grocery_msg
+
+                if msg_type == "success":
+                    st.success(msg)
+                elif msg_type == "warning":
+                    st.warning(msg)
+                else:
+                    st.error(msg)
+
+                st.session_state.grocery_msg = None
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
 # ---------- TODAY'S STATS ----------
 with right:
     with st.container():
+        st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
+
         st.markdown(
             "<h3 style='text-align:center;'>Today's Stats</h3>",
             unsafe_allow_html=True
@@ -78,3 +229,5 @@ with right:
 
         with c3:
             st.metric("Spent", "$23")
+        
+        st.markdown("</div>", unsafe_allow_html=True)

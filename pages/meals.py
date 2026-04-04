@@ -136,35 +136,6 @@ for i, meal in enumerate(meals):
                     st.session_state.message = ("success", "Ingredients updated!")
                     st.rerun()
 
-        # # EDIT
-        # with col1:
-        #     if st.button("Edit Ingredients", key=f"edit_{meal_type}_{i}"):
-        #         new_ingredients = st.text_area(
-        #             "Edit ingredients (one per line)",
-        #             "\n".join(meal["ingredients"]),
-        #             key=f"text_{meal_type}_{i}"
-        #         )
-        #         if st.button("Save Changes", key=f"save_{meal_type}_{i}"):
-        #             updated = [x.strip() for x in new_ingredients.split("\n") if x.strip()]
-
-        #             if not updated:
-        #                 st.error("Ingredients cannot be empty.")
-        #             else:
-        #                 st.session_state.meals_data[meal_type][i]["ingredients"] = updated
-        #                 st.session_state.message = ("success", "Ingredients updated!")
-        #                 st.rerun()
-
-        # # DELETE
-        # with col2:
-        #     if st.button("Delete Meal", key=f"delete_{meal_type}_{i}"):
-
-        #         st.session_state.deleted_meal = (meal_type, i, meal)
-        #         del st.session_state.meals_data[meal_type][i]
-
-        #         st.session_state.message = ("warning", "Meal deleted. You can undo below.")
-        #         st.rerun()
-
-
 # ---------- UNDO DELETE ----------
 if st.session_state.deleted_meal:
     meal_type, index, meal = st.session_state.deleted_meal

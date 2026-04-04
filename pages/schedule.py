@@ -46,9 +46,7 @@ if st.session_state.message:
     st.success(st.session_state.message)
     st.session_state.message = None
 
-# =====================================================
-# 🍽️ MEAL SCHEDULE
-# =====================================================
+# MEAL SCHEDULE
 with tab1:
 
     col1, col2 = st.columns([6,1])
@@ -92,9 +90,7 @@ with tab1:
                 st.session_state.message = "Meal deleted successfully!"
                 st.rerun()
 
-# =====================================================
-# 📚 CLASS SCHEDULE
-# =====================================================
+# CLASS SCHEDULE
 with tab2:
 
     col1, col2 = st.columns([6,1])
