@@ -4,7 +4,7 @@ import pandas as pd
 
 st.title("Home", text_alignment="center")
 
-# ---------- SESSION STATE ----------
+# session state
 if "meals_home" not in st.session_state:
     st.session_state.meals_home = {
         "Breakfast": "Yogurt with granola & strawberries",
@@ -21,7 +21,7 @@ if "grocery_df" not in st.session_state:
 if "home_msg" not in st.session_state:
     st.session_state.home_msg = None
 
-# ---------- STYLE ----------
+# style
 st.markdown("""
 <style>
 .blue-box {
@@ -33,7 +33,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- MESSAGE ----------
+# message
 if st.session_state.home_msg:
     msg_type, msg = st.session_state.home_msg
     if msg_type == "success":
@@ -44,7 +44,7 @@ if st.session_state.home_msg:
         st.error(msg)
     st.session_state.home_msg = None
 
-# ---------- TODAY'S SCHEDULE ----------
+# today's schedule
 with st.container():
     st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
 
@@ -68,11 +68,11 @@ with st.container():
             st.markdown(f"**Your {meal.lower()} plan is:**")
             st.write(current)
 
-            # TOGGLE BUTTON
+            # toggle edit
             if st.button("Edit", key=f"toggle_{meal}"):
                 st.session_state[toggle_key] = not st.session_state[toggle_key]
 
-            # EDIT
+            # edit
             if st.session_state[toggle_key]:
                 new_val = st.text_input(
                     "Edit meal",
@@ -91,7 +91,7 @@ with st.container():
                         st.session_state[f"edit_toggle_{meal}"] = False
                     st.rerun()
                 
-            # DELETE
+            # delete
             if st.button("Delete", key=f"delete_{meal}"):
                 st.session_state.meals_home[meal] = "No meal planned yet"
                 st.session_state.home_msg = ("warning", f"{meal} deleted.")
@@ -99,10 +99,9 @@ with st.container():
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ---------- LOWER SECTION ----------
 left, right = st.columns([1,1])
 
-# ---------- GROCERY LIST ----------
+# grocery list
 with left:
     with st.container():
         st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
@@ -118,7 +117,7 @@ with left:
         total = df["Price"].sum()
         st.write(f"**Total: ${round(total,2)}**")
 
-        # TOGGLE
+        # toggle edit
         if "edit_grocery" not in st.session_state:
             st.session_state.edit_grocery = False
 
@@ -136,7 +135,7 @@ with left:
             if "grocery_msg" not in st.session_state:
                 st.session_state.grocery_msg = None
 
-            # ADD
+            # add
             with colA:
                 if st.button("Add"):
                     name = item_name.strip()
@@ -155,7 +154,7 @@ with left:
                             st.session_state.grocery_msg = ("error", "Price must be a number.")
                     st.rerun()
 
-            # EDIT
+            # edit
             with colB:
                 if st.button("Update"):
                     name = item_name.strip()
@@ -176,7 +175,7 @@ with left:
                             st.session_state.grocery_msg = ("warning", "Item not found.")
                     st.rerun()
 
-            # DELETE
+            # delete
             with colC:
                 if st.button("Delete Item"):
                     name = item_name.strip()
@@ -193,7 +192,7 @@ with left:
                             st.session_state.grocery_msg = ("warning", "Item not found.")
                     st.rerun()
             
-            # ---------- SHOW MESSAGE UNDER BUTTONS ----------
+            # message
             if st.session_state.grocery_msg:
                 msg_type, msg = st.session_state.grocery_msg
 
@@ -209,7 +208,7 @@ with left:
         st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ---------- TODAY'S STATS ----------
+# today's stats
 with right:
     with st.container():
         st.markdown("<div class='blue-box'>", unsafe_allow_html=True)

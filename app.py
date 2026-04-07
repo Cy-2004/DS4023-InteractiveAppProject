@@ -1,13 +1,13 @@
 import streamlit as st
 
-# ---------- CONFIG ----------
+# config
 st.set_page_config(
     page_title="NutriPlanner",
     page_icon="🥗",
     layout="wide"
 )
 
-# ---------- CLEAN UI ----------
+# UI
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
@@ -17,7 +17,7 @@ footer {visibility:hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- SESSION STATE ----------
+# session state
 if "meals" not in st.session_state:
     st.session_state.meals = {
         "Breakfast": "Yogurt",
@@ -25,7 +25,7 @@ if "meals" not in st.session_state:
         "Dinner": "Tacos"
     }
 
-# ---------- NAVIGATION ----------
+# navigation
 pages = {
     "Main": [
         st.Page("pages/home.py", title="Home", icon="🏠"),

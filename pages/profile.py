@@ -9,14 +9,14 @@ DEFAULT_PROFILE = {
     "prep_time": 30
 }
 
-# ---------- SESSION STATE ----------
+# session state
 if "profile" not in st.session_state:
     st.session_state.profile = DEFAULT_PROFILE.copy()
 
 if "msg" not in st.session_state:
     st.session_state.msg = None
 
-# ---------- CALLBACKS ----------
+# callbacks
 def save_name():
     name = st.session_state["input_name"].strip()
     if name == "" or name.isdigit():
@@ -42,7 +42,7 @@ def save_budget():
         st.session_state.msg = ("success", "Budget saved.")
 
 
-# ---------- MESSAGE DISPLAY ----------
+# message
 if st.session_state.msg:
     msg_type, msg = st.session_state.msg
 
@@ -54,7 +54,7 @@ if st.session_state.msg:
     st.session_state.msg = None
 
 
-# ---------- INPUT ROWS ----------
+# input rows
 def input_row(label, key, value, callback):
     col1, col2 = st.columns([1,3], vertical_alignment="center")
     with col1:
@@ -71,7 +71,7 @@ input_row("Name:", "input_name", st.session_state.profile["name"], save_name)
 input_row("Age:", "input_age", str(st.session_state.profile["age"]), save_age)
 input_row("Weekly Budget:", "input_budget", str(st.session_state.profile["budget"]), save_budget)
 
-# ---------- SLIDER ----------
+# slider
 st.markdown("**Maximum Prep Time (min)**")
 
 st.session_state.profile["prep_time"] = st.slider(
@@ -81,16 +81,16 @@ st.session_state.profile["prep_time"] = st.slider(
     key="prep_slider"
 )
 
-# ---------- LOGOUT ----------
+# logout
 st.markdown("---")
 
 col1, col2 = st.columns([1,5])
 with col1:
     if st.button("Log Out"):
-        # CLEAR EVERYTHING
+        # clear everything
         st.session_state.clear()
 
-        # RESET DEFAULTS AFTER CLEAR
+        # reset defaults
         st.session_state.profile = DEFAULT_PROFILE.copy()
         st.session_state.input_name = ""
         st.session_state.input_age = ""

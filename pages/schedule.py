@@ -3,7 +3,7 @@ import pandas as pd
 
 st.title("Schedule", text_alignment="center")
 
-# ---------- SESSION STATE ----------
+# session state
 if "meal_schedule" not in st.session_state:
     st.session_state.meal_schedule = {}
 
@@ -19,11 +19,11 @@ if "edit_class" not in st.session_state:
 if "message" not in st.session_state:
     st.session_state.message = None
 
-# ---------- CONSTANTS ----------
+# constants
 days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
 meals = ["Breakfast","Lunch","Dinner"]
 
-# ---------- TAB STYLE (CENTERED) ----------
+# style
 st.markdown("""
 <style>
 .stTabs [data-baseweb="tab-list"] {
@@ -46,7 +46,7 @@ if st.session_state.message:
     st.success(st.session_state.message)
     st.session_state.message = None
 
-# MEAL SCHEDULE
+# meal schedule
 with tab1:
 
     col1, col2 = st.columns([6,1])
@@ -56,7 +56,6 @@ with tab1:
         if st.button("Edit Meals"):
             st.session_state.edit_meal = not st.session_state.edit_meal
 
-    # -------- DATAFRAME --------
     meal_df = pd.DataFrame("", index=meals, columns=days)
 
     for (day, meal), value in st.session_state.meal_schedule.items():
@@ -64,7 +63,7 @@ with tab1:
 
     st.data_editor(meal_df, use_container_width=True, disabled=True)
 
-    # -------- EDIT PANEL --------
+    # edit panel
     if st.session_state.edit_meal:
         st.markdown("### Edit Meal")
 
@@ -90,7 +89,7 @@ with tab1:
                 st.session_state.message = "Meal deleted successfully!"
                 st.rerun()
 
-# CLASS SCHEDULE
+# class schedule
 with tab2:
 
     col1, col2 = st.columns([6,1])
@@ -100,7 +99,7 @@ with tab2:
         if st.button("Edit Classes"):
             st.session_state.edit_class = not st.session_state.edit_class
 
-    # -------- DYNAMIC TIME RANGE --------
+    # dynamic time range
     default_hours = list(range(8,17))
 
     used_hours = [h for (_, h) in st.session_state.class_schedule.keys()]
@@ -113,7 +112,6 @@ with tab2:
 
     hours = list(range(min_hour, max_hour))
 
-    # -------- DATAFRAME --------
     time_labels = [f"{h}:00-{h+1}:00" for h in hours]
     class_df = pd.DataFrame("", index=time_labels, columns=days)
 
@@ -124,7 +122,7 @@ with tab2:
 
     st.data_editor(class_df, use_container_width=True, disabled=True)
 
-    # -------- EDIT PANEL --------
+    # edit panel
     if st.session_state.edit_class:
         st.markdown("### Edit Schedule")
 

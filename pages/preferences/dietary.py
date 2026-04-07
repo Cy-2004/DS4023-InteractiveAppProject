@@ -2,7 +2,7 @@ import streamlit as st
 
 st.title("Dietary Restrictions", text_alignment="center")
 
-# ---------- SESSION STATE ----------
+# session state
 if "dietary" not in st.session_state:
     st.session_state.dietary = {
         "allergies": [],
@@ -10,7 +10,7 @@ if "dietary" not in st.session_state:
         "other": []
     }
 
-# ---------- ALL OPTIONS ----------
+# all options
 allergies_options = ["Nuts", "Dairy", "Shellfish", "Eggs", "Soy", "Wheat"]
 sensitivities_options = ["Gluten", "Lactose", "Caffeine", "Spicy Foods"]
 other_options = [
@@ -18,7 +18,7 @@ other_options = [
     "Low Carb", "Sugar Free", "Paleo", "Keto"
 ]
 
-# ---------- ALLERGIES ----------
+# allergies
 with st.expander("Allergies"):
     st.session_state.dietary["allergies"] = st.multiselect(
         "Choose allergies",
@@ -27,7 +27,7 @@ with st.expander("Allergies"):
         key="allergies_select"
     )
 
-# ---------- SENSITIVITIES ----------
+# sensitivities/intolerances
 with st.expander("Sensitivities / Intolerances"):
     st.session_state.dietary["sensitivities"] = st.multiselect(
         "Choose sensitivities",
@@ -36,7 +36,7 @@ with st.expander("Sensitivities / Intolerances"):
         key="sensitivities_select"
     )
 
-# ---------- OTHER ----------
+# other
 with st.expander("Other Restrictions"):
     st.session_state.dietary["other"] = st.multiselect(
         "Choose restrictions",

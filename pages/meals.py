@@ -2,7 +2,7 @@ import streamlit as st
 
 st.title("Meals", text_alignment="center")
 
-# ---------- SESSION STATE ----------
+# session state
 if "meals_data" not in st.session_state:
     st.session_state.meals_data = {
         "Lunch": [
@@ -39,7 +39,7 @@ if "deleted_meal" not in st.session_state:
 if "message" not in st.session_state:
     st.session_state.message = None
 
-# ---------- GLOBAL MESSAGE ----------
+# message
 if st.session_state.message:
     msg_type, msg_text = st.session_state.message
 
@@ -52,7 +52,7 @@ if st.session_state.message:
 
     st.session_state.message = None
 
-# ---------- SELECTBOX ----------
+# selectbox
 col1, col2 = st.columns([1,2])
 with col1:
     st.markdown("**Choose a mealtime:**")
@@ -65,14 +65,14 @@ with col2:
 
 meals = st.session_state.meals_data.get(meal_type, [])
 
-# ---------- EMPTY STATE ----------
+# empty state
 if not meals:
     st.warning("No meals currently.")
     if st.button("Generate Meals"):
         st.info("Meals generated (placeholder)")
     st.stop()
 
-# ---------- DISPLAY MEALS ----------
+# display meals
 for i, meal in enumerate(meals):
 
     label = f"{meal['name']}  •  {meal['cuisine']}  •  Total Time: {meal['time']}"
@@ -84,31 +84,31 @@ for i, meal in enumerate(meals):
 
     with st.expander(label):
 
-        # INGREDIENTS
+        # ingredients
         st.markdown("**Ingredients:**")
         for ing in meal["ingredients"]:
             st.write(f"- {ing}")
 
-        # DIRECTIONS
+        # directions
         st.markdown("**Directions:**")
         for step_num, step in enumerate(meal["directions"], 1):
             st.write(f"{step_num}. {step}")
 
-        # CONTAINS (optional)
+        # contains (optional)
         if meal["contains"]:
             st.markdown("**Contains:**")
             for item in meal["contains"]:
                 st.write(f"- {item}")
 
-        # ---------- ACTION BUTTONS ----------
+        # action buttons
         col1, col2 = st.columns(2)
 
-        # TOGGLE EDIT
+        # toggle edit
         with col1:
             if st.button("Edit Ingredients", key=f"edit_btn_{meal_type}_{i}"):
                 st.session_state[edit_key] = not st.session_state[edit_key]
 
-        # DELETE
+        # delete
         with col2:
             if st.button("Delete Meal", key=f"delete_{meal_type}_{i}"):
                 st.session_state.deleted_meal = (meal_type, i, meal)
@@ -116,7 +116,7 @@ for i, meal in enumerate(meals):
                 st.session_state.message = ("warning", "Meal deleted. You can undo below.")
                 st.rerun()
 
-        # ---------- EDIT PANEL (TOGGLED) ----------
+        # edit panel
         if st.session_state[edit_key]:
             st.markdown("### Edit Ingredients")
 
@@ -136,7 +136,7 @@ for i, meal in enumerate(meals):
                     st.session_state.message = ("success", "Ingredients updated!")
                     st.rerun()
 
-# ---------- UNDO DELETE ----------
+# undo delete
 if st.session_state.deleted_meal:
     meal_type, index, meal = st.session_state.deleted_meal
 
