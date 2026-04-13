@@ -68,12 +68,28 @@ with tab1:
         st.markdown("### Edit Meal")
 
         selected_day = st.radio("Select Day", days, key="meal_day", horizontal=True)
-        selected_meal = st.radio("Select Meal", meals, key="meal_type", horizontal=True)
+
+        # dependent dropdown: meal options depend on meal type
+        col1, col2 = st.columns([1,2])
+        with col1:
+            selected_meal = st.selectbox("Select Meal", meals, key="meal_type")
+        with col2:
+            meal_options_map = {
+                "Breakfast": ["Yogurt with granola", "Protein pancakes", "Oatmeal"],
+                "Lunch": ["Chicken Caesar Salad", "Chipotle Chicken & Macaroni Salad", "Tortilla Soup"],
+                "Dinner": ["Beef tacos", "Grilled chicken bowl", "Pasta"]
+            }
+            meal_choice = st.selectbox(
+                "Choose Meal Option",
+                meal_options_map[selected_meal],  # depends on selected_meal
+                key="meal_option_select"  # key ensures correct update when meal type changes
+            )
 
         action = st.radio("Action", ["Add/Edit","Delete"], key="meal_action", horizontal=True)
 
         if action == "Add/Edit":
-            meal_name = st.text_input("Enter Meal")
+            # meal_name = st.text_input("Enter Meal")
+            meal_name = meal_choice
 
             if st.button("Save Meal", key="save_meal_btn"):
                 if meal_name.strip() == "":

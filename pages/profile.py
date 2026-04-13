@@ -41,6 +41,20 @@ def save_budget():
         st.session_state.profile["budget"] = int(budget)
         st.session_state.msg = ("success", "Budget saved.")
 
+def handle_logout():
+    # clear everything
+    st.session_state.clear()
+
+    # reset defaults
+    st.session_state.profile = DEFAULT_PROFILE.copy()
+    st.session_state.input_name = ""
+    st.session_state.input_age = ""
+    st.session_state.input_budget = ""
+    st.session_state.prep_slider = 30
+
+    st.session_state.msg = ("success", "Successfully logged out!")
+
+
 
 # message
 if st.session_state.msg:
@@ -63,7 +77,7 @@ def input_row(label, key, value, callback):
         st.text_input(
             "",
             value=value,
-            key=key,
+            key=key, # key links widget state to session_state so values persist across reruns
             on_change=callback
         )
 
@@ -78,7 +92,7 @@ st.session_state.profile["prep_time"] = st.slider(
     "",
     10, 90,
     value=st.session_state.profile["prep_time"],
-    key="prep_slider"
+    key="prep_slider" # key allows us to store and reset slider value reliably
 )
 
 # logout
@@ -86,17 +100,5 @@ st.markdown("---")
 
 col1, col2 = st.columns([1,5])
 with col1:
-    if st.button("Log Out"):
-        # clear everything
-        st.session_state.clear()
-
-        # reset defaults
-        st.session_state.profile = DEFAULT_PROFILE.copy()
-        st.session_state.input_name = ""
-        st.session_state.input_age = ""
-        st.session_state.input_budget = ""
-        st.session_state.prep_slider = 30
-
-        st.session_state.msg = ("success", "Successfully logged out!")
-
+    if st.button("Log Out", key="logout_btn", on_click=handle_logout): # key ensures button state is uniquely tracked across reruns
         st.rerun()

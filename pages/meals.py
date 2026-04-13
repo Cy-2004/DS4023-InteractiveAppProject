@@ -24,7 +24,7 @@ if "meals_data" not in st.session_state:
             },
             {
                 "name": "Tortilla Soup",
-                "cuisine": "Hispanic",
+                "cuisine": "Mexican",
                 "time": "30 mins",
                 "ingredients": ["Broth", "Chicken", "Tortillas"],
                 "directions": ["Boil broth", "Add ingredients"],
@@ -52,7 +52,7 @@ if st.session_state.message:
 
     st.session_state.message = None
 
-# selectbox
+# mealtime selectbox
 col1, col2 = st.columns([1,2])
 with col1:
     st.markdown("**Choose a mealtime:**")
@@ -60,15 +60,38 @@ with col2:
     meal_type = st.selectbox(
         "",
         ["Breakfast","Lunch","Dinner"],
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="meal_type_select" # key stores selected meal type
     )
 
-meals = st.session_state.meals_data.get(meal_type, [])
+# cuisine selectbox
+col1, col2 = st.columns([1,2])
+with col1:
+    st.markdown("**Select a cuisine:**")
+with col2:
+    cuisine = st.selectbox(
+        "",
+        ["All", "Italian","Asian","Mexican","Indian","American", "French","Mediterranean","Thai","Greek","Spanish"],
+        label_visibility="collapsed",
+        key="cuisine_select"  # key stores selected cuisine and triggers dependent UI update
+    )
+
+all_meals = st.session_state.meals_data.get(meal_type, [])
+
+# filter meals based on selected cuisine
+if cuisine == "All":
+    meals = all_meals
+else:
+    meals = [m for m in all_meals if m["cuisine"] == cuisine]
 
 # empty state
 if not meals:
-    st.warning("No meals currently.")
-    if st.button("Generate Meals"):
+    if cuisine == "All":
+        st.warning(f"No meals available for {meal_type}.")
+    else:
+        st.warning(f"No {cuisine} meals available for {meal_type}.")
+
+    if st.button("Generate Meals", key="generate_meals_btn"):
         st.info("Meals generated (placeholder)")
     st.stop()
 
