@@ -33,7 +33,7 @@ st.checkbox(
     on_change=toggle_select_all
 )
 
-st.multiselect(
+selected_cuisines = st.multiselect(
     "Selected Cuisines",
     options=all_cuisines,
     key="selected_cuisines",

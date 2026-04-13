@@ -1,4 +1,5 @@
 import streamlit as st
+from api import get_recipes 
 
 st.title("Meals", text_alignment="center")
 
@@ -64,6 +65,9 @@ with col2:
         key="meal_type_select" # key stores selected meal type
     )
 
+# get user cuisine preferences 
+user_cuisines = st.session_state.get("selected_cuisines", [])
+
 # cuisine selectbox
 col1, col2 = st.columns([1,2])
 with col1:
@@ -71,7 +75,7 @@ with col1:
 with col2:
     cuisine = st.selectbox(
         "",
-        ["All", "Italian","Asian","Mexican","Indian","American", "French","Mediterranean","Thai","Greek","Spanish"],
+        ['All'] + user_cuisines,
         label_visibility="collapsed",
         key="cuisine_select"  # key stores selected cuisine and triggers dependent UI update
     )
