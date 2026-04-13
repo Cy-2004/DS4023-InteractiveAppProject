@@ -10,7 +10,7 @@ if "meals_data" not in st.session_state:
             {
                 "name": "Chicken Caesar Salad",
                 "cuisine": "Italian",
-                "time": "10 mins",
+                "prep_time": "10 mins",
                 "ingredients": ["2 cups lettuce", "1 cup shredded chicken", "1 packet croutons", "1.5 tsp parmesan cheese", "2 tbsp caesar dressing"],
                 "directions": ["Mix lettuce, shredded chicken, and parmesan cheese.", "Add croutons and drizzle dressing. Mix well."],
                 "contains": ["Dairy", "Poultry"]
@@ -18,7 +18,7 @@ if "meals_data" not in st.session_state:
             {
                 "name": "Chipotle Chicken & Macaroni Salad",
                 "cuisine": "American",
-                "time": "35 mins",
+                "prep_time": "35 mins",
                 "ingredients": ["Chicken", "Macaroni", "Chipotle sauce"],
                 "directions": ["Cook pasta", "Mix with chicken and sauce"],
                 "contains": ["Dairy"]
@@ -26,7 +26,7 @@ if "meals_data" not in st.session_state:
             {
                 "name": "Tortilla Soup",
                 "cuisine": "Mexican",
-                "time": "30 mins",
+                "prep_time": "30 mins",
                 "ingredients": ["Broth", "Chicken", "Tortillas"],
                 "directions": ["Boil broth", "Add ingredients"],
                 "contains": []
@@ -65,17 +65,27 @@ with col2:
         key="meal_type_select" # key stores selected meal type
     )
 
-# get user cuisine preferences 
+# get user preferences for doing api generate meals 
 user_cuisines = st.session_state.get("selected_cuisines", [])
+user_allergies = st.session_state.get("allergies_select", [])
+user_sensitivities = st.session_state.get("sensitivities_select", [])
+user_intolerances = user_allergies.append(user_sensitivities) 
+user_other_dietary = st.session_state.get("other_select", None)
 
 # cuisine selectbox
 col1, col2 = st.columns([1,2])
 with col1:
     st.markdown("**Select a cuisine:**")
 with col2:
+    # if user has selected cuisines show those, otherwise show all cuisines from meals data
+    if user_cuisines:
+        cuisines_showing = user_cuisines
+    else: 
+        cuisines_showing = ["Italian","Asian","Mexican","Indian","American", "French","Mediterranean","Thai","Greek","Spanish"]
+    
     cuisine = st.selectbox(
         "",
-        ['All'] + user_cuisines,
+        ['All'] + cuisines_showing,
         label_visibility="collapsed",
         key="cuisine_select"  # key stores selected cuisine and triggers dependent UI update
     )
@@ -95,14 +105,33 @@ if not meals:
     else:
         st.warning(f"No {cuisine} meals available for {meal_type}.")
 
-    if st.button("Generate Meals", key="generate_meals_btn"):
-        st.info("Meals generated (placeholder)")
-    st.stop()
+if st.button("Generate Meals", key="generate_meals_btn"):
+    # st.info("Meals generated:")
+    # api call w user preferences 
+    results = get_recipes(
+        query='', cuisine=cuisine, intolerances=user_intolerances, diet=user_other_dietary)
+
+    api_meals = [] 
+    for r in results.get('results', []):
+        api_meals.append({
+            'name': r['title'],
+            'cuisine': r.get('cuisine', 'Unknown')[0], 
+            'prep_time': r.get('readyInMinutes', 'N/A'),
+            'ingredients': [ing['original'] for ing in r.get('extendedIngredients', [])], 
+            'directions': r.get('instructions', 'No instructions provided.').split('. '),
+        })
+
+    if api_meals:
+        st.session_state.meals_data[meal_type] = api_meals
+        st.session_state.message = ("success", f"{len(api_meals)} meals generated!")
+    else:
+        st.session_state.message = ("warning", "No meals found with the given preferences.")
+# st.stop()
 
 # display meals
 for i, meal in enumerate(meals):
 
-    label = f"{meal['name']}  •  {meal['cuisine']}  •  Total Time: {meal['time']}"
+    label = f"{meal['name']}  •  {meal['cuisine']}  •  Prep Time: {meal['prep_time']}"
 
     # init toggle state per meal
     edit_key = f"edit_toggle_{meal_type}_{i}"
@@ -122,10 +151,10 @@ for i, meal in enumerate(meals):
             st.write(f"{step_num}. {step}")
 
         # contains (optional)
-        if meal["contains"]:
-            st.markdown("**Contains:**")
-            for item in meal["contains"]:
-                st.write(f"- {item}")
+        # if meal["contains"]:
+        #     st.markdown("**Contains:**")
+        #     for item in meal["contains"]:
+        #         st.write(f"- {item}")
 
         # action buttons
         col1, col2 = st.columns(2)

@@ -9,22 +9,27 @@ base_url = 'https://api.spoonacular.com'
 
 # import selections from UI pages 
 cuisines = st.session_state.get('selected_cuisines')
-allergies = st.session_state.get('allergies_select').tolist()
-sensitivities = st.session_state.get('sensitivities_select').tolist()
-intolerances = allergies + sensitivities
+allergies = st.session_state.get('allergies_select', [])
+sensitivities = st.session_state.get('sensitivities_select', [])
+# Convert to list if they're not already
+if hasattr(allergies, 'tolist'):
+    allergies = allergies.tolist()
+if hasattr(sensitivities, 'tolist'):
+    sensitivities = sensitivities.tolist()
+intolerances = allergies.append(sensitivities) 
 other_dietary = st.session_state.get('other_select')
 print(cuisines)
 print(f'allergies: {allergies}')
 
 
-def get_recipes():
+def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=30):
     url = f"{base_url}/recipes/complexSearch"
 
     params = {
-        "apiKey": API_KEY,
+        "apiKey": api_key,
         "query": query,
-        "instructionsRequired": true,
-        "addRecipeNutrition": true
+        "instructionsRequired": True,
+        "addRecipeNutrition": True
     }
 
     # possible parameters for the query based on user preferences 
