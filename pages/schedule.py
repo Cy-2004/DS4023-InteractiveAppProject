@@ -74,15 +74,14 @@ with tab1:
         with col1:
             selected_meal = st.selectbox("Select Meal", meals, key="meal_type")
         with col2:
-            meal_options_map = {
-                "Breakfast": ["Yogurt with granola", "Protein pancakes", "Oatmeal"],
-                "Lunch": ["Chicken Caesar Salad", "Chipotle Chicken & Macaroni Salad", "Tortilla Soup"],
-                "Dinner": ["Beef tacos", "Grilled chicken bowl", "Pasta"]
-            }
+            meals_data = st.session_state.get("meals_data", {}) # get user selected meals from meals.py session state 
+            meal_list = meals_data.get(selected_meal, [])
+            meal_names = [meal["name"] for meal in meal_list] 
+
             meal_choice = st.selectbox(
-                "Choose Meal Option",
-                meal_options_map[selected_meal],  # depends on selected_meal
-                key="meal_option_select"  # key ensures correct update when meal type changes
+                "Choose Meal",
+                meal_names, # depends on list of users generated meals 
+                key="meal_option_select" # key ensures correct update when meal type changes
             )
 
         action = st.radio("Action", ["Add/Edit","Delete"], key="meal_action", horizontal=True)
