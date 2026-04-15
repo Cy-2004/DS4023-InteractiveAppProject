@@ -18,8 +18,8 @@ print(f'allergies: {allergies}')
 
 
 # caching API responses to reduce redundant calls and respect API rate limits
-# using ttl=3600 (1 hour) because recipe search results may not change frequently and this allows for a good balance between freshness and performance
-@st.cache_data(ttl=3600)
+# using ttl=10800 (3 hours) because recipe search results may not change frequently and this allows for a good balance between freshness and performance
+@st.cache_data(ttl=10800)
 def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=30, number=20):
     url = f"{base_url}/recipes/complexSearch"
 
@@ -68,7 +68,7 @@ def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=
         st.error("Network error. Please check your internet connection.")
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=10800)
 def get_recipe_info(recipe_ids):
     url = f'{base_url}/recipes/informationBulk'
     params = {

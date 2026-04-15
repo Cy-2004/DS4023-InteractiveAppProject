@@ -6,11 +6,15 @@ st.title("Home", text_alignment="center")
 
 # session state
 if "meals_home" not in st.session_state:
-    st.session_state.meals_home = {
-        "Breakfast": "Yogurt with granola & strawberries",
-        "Lunch": "Chipotle Chicken & Macaroni salad",
-        "Dinner": "Beef tacos"
-    }
+    # st.session_state.meals_home = {
+    #     "Breakfast": "Yogurt with granola & strawberries",
+    #     "Lunch": "Chipotle Chicken & Macaroni salad",
+    #     "Dinner": "Beef tacos"
+    # }
+    st.session_state.meals_home = {}
+
+if "meal_schedule" in st.session_state:
+    st.session_state.meals_home = st.session_state.meal_schedule
 
 if "grocery_df" not in st.session_state:
     st.session_state.grocery_df = pd.DataFrame({

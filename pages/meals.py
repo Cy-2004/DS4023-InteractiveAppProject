@@ -17,7 +17,7 @@ if "meals_data" not in st.session_state:
             'nutrition': {'Calories': '150', 'Protein': '5g', 'Sugar': '1g', 'Carbohydrates': '27g', 'Fiber': '9g'},
             'contains': []}
         ], 
-        "Lunch": [
+        "Lunch/Dinner": [
             {"id": 2,
                 "name": "Chicken Caesar Salad",
                 "cuisine": "Italian",
@@ -33,9 +33,7 @@ if "meals_data" not in st.session_state:
                 "ingredients": ["Chicken", "Macaroni", "Chipotle sauce"],
                 "directions": ["Cook pasta", "Mix with chicken and sauce"],
                 "nutrition": {'Calories': '290', 'Protein': '15g', 'Sugar': '1g', 'Carbohydrates': '30g', 'Fiber': '2g'},
-                "contains": ["Dairy"]}
-        ],
-        "Dinner": [
+                "contains": ["Dairy"]},
             {"id": 4,
                 "name": "Tortilla Soup",
                 "cuisine": "Mexican",
@@ -75,10 +73,18 @@ with col1:
 with col2:
     meal_type = st.selectbox(
         "Meal",
-        ["Breakfast","Lunch","Dinner"],
+        ["Breakfast","Lunch", "Dinner"],
         label_visibility="collapsed",
         key="meal_type_select" # key stores selected meal type
     )
+
+# classify meal_type for easier recipe filtering later on 
+classified_meal_type = ''
+if meal_type:
+    if meal_type == 'Breakfast':
+        classified_meal_type = 'Breakfast'
+    else: # else is lunch or dinner 
+        classified_meal_type = 'Lunch/Dinner'
 
 # get user preferences for doing api generate meals 
 user_cuisines = st.session_state.get("selected_cuisines", [])
@@ -105,13 +111,14 @@ with col2:
         key="cuisine_select"  # key stores selected cuisine and triggers dependent UI update
     )
 
-all_meals = st.session_state.meals_data.get(meal_type, [])
+all_meals = st.session_state.meals_data.get(classified_meal_type, [])
 
 # filter meals based on selected cuisine
 if cuisine == "All":
     meals = all_meals
 else:
-    meals = [m for m in all_meals if m["cuisine"] == cuisine]
+    meals = [m for m in all_meals 
+    if cuisine.lower() in m["cuisine"].lower()]
 
 # empty state
 if not meals:
@@ -133,18 +140,19 @@ if st.button("Generate Meals", key="generate_meals_btn"):
 
         # checking for errors 
         if not results:
-            st.error("Failed to retrieve recipes. Please try again.")
+            st.error("Failed to retrieve recipes. Please try again.")  
+            st.session_state.generate_meals = False 
             st.stop()
-
-
+            
+            
         # intializing meals data for api call 
-        api_meals = {'Breakfast': [], 'Lunch': [], 'Dinner': [], 'Other': []}
+        api_meals = {'Breakfast': [], 'Lunch/Dinner': [],'Other': []}
         total_meals = 0
         existing_ids = {
             "Breakfast": set(),
-            "Lunch": set(),
-            "Dinner": set(),
+            "Lunch/Dinner": set(),
             "Other": set()}
+        all_existing_ids = set().union(*existing_ids.values())
         
         for classified_type, meals in st.session_state.meals_data.items():
             for meal in meals:
@@ -152,12 +160,23 @@ if st.button("Generate Meals", key="generate_meals_btn"):
                     existing_ids[classified_type].add(meal["id"])
 
         # create new_id list for getting recipe info details 
-        new_ids = [] 
-        for r in results.get('results', []):
-            recipe_id = r.get("id")
-            if recipe_id not in existing_ids[classified_type]:
-                new_ids.append(recipe_id)
-        bulk_details = get_recipe_info(new_ids)
+        new_ids = [
+            r.get("id")
+            for r in results.get("results", [])
+            if r.get("id") not in all_existing_ids
+        ]
+
+        new_ids = sorted(set(new_ids))
+        if new_ids:
+            bulk_details = get_recipe_info(tuple(new_ids))
+        else:
+            bulk_details = {}
+
+        # for r in results.get('results', []):
+        #     recipe_id = r.get("id")
+        #     if recipe_id not in existing_ids[classified_type]:
+        #         new_ids.append(recipe_id)
+        # bulk_details = get_recipe_info(new_ids)
 
         for r in results.get('results', []):
             # classify meal type 
@@ -165,15 +184,13 @@ if st.button("Generate Meals", key="generate_meals_btn"):
             types = [d.lower() for d in types] 
             if any(x in types for x in ["breakfast", "brunch"]):
                 classified_type = "Breakfast"
-            elif any(x in types for x in ["lunch", "salad", "soup"]):
-                classified_type = "Lunch"
-            elif any(x in types for x in ["dinner", "main course", "main dish"]):
-                classified_type = "Dinner"
+            elif any(x in types for x in ["lunch", "salad", "soup", "dinner", "main course", "main dish"]):
+                classified_type = "Lunch/Dinner"
             else: 
                 classified_type = "Other"
 
             # skip if meal already exists in session state meals data
-            if r.get("id") in existing_ids[meal_type]:
+            if r.get("id") in existing_ids[classified_meal_type]:
                 st.info(f'{r.get("title")} already exists in your meals')
                 continue   
 
@@ -188,7 +205,6 @@ if st.button("Generate Meals", key="generate_meals_btn"):
                 'name': r['title'],
                 'cuisine': ", ".join(r.get("cuisines", [])) or "Unknown", 
                 'prep_time': f"{r.get('readyInMinutes', 'N/A')} mins",
-                # 'ingredients': [ing['original'] for ing in r.get('extendedIngredients', [])], 
                 'ingredients': deets.get("ingredients", []),
                 'nutrition': deets.get("nutrition", {}),
                 'directions': r.get('instructions', 'No instructions provided.').split('. '),
@@ -209,9 +225,9 @@ if st.button("Generate Meals", key="generate_meals_btn"):
             if meal_type == "Breakfast":
                 st.success(f"{len(api_meals['Breakfast'])} breakfast meals generated!")
             elif meal_type == "Lunch":
-                st.success(f"{len(api_meals['Lunch'])} lunch meals generated!")
-            else: # meal_type == "Dinner"
-                st.success(f"{len(api_meals['Dinner'])} dinner meals generated!")
+                st.success(f"{len(api_meals['Lunch/Dinner'])} lunch meals generated!")
+            # else: # meal_type == "Dinner"
+            #     st.success(f"{len(api_meals['Dinner'])} dinner meals generated!")
         else:
             st.warning("No meals found with the given preferences.")
 
@@ -221,7 +237,7 @@ if st.button("Generate Meals", key="generate_meals_btn"):
 
 
 # display meals depending on meal type 
-for i, meal in enumerate(all_meals):
+for i, meal in enumerate(meals):
 
     label = f"{meal['name']}  •  {meal['cuisine']}  •  Prep Time: {meal['prep_time']}"
 
