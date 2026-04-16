@@ -11,7 +11,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 #MainMenu {visibility: hidden;}
-[data-testid="stHeader"] {display:none;}
+# [data-testid="stHeader"] {display:none;}
 footer {visibility:hidden;}
 .block-container {padding-top:1rem;}
 </style>

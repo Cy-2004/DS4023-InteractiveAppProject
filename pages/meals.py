@@ -143,6 +143,12 @@ if st.button("Generate Meals", key="generate_meals_btn"):
             st.error("Failed to retrieve recipes. Please try again.")  
             st.session_state.generate_meals = False 
             st.stop()
+
+        # missing data
+        if not results.get("results"):
+            st.warning("No meals matched your preferences.")
+            st.session_state.generate_meals = False 
+            st.stop()
             
             
         # intializing meals data for api call 

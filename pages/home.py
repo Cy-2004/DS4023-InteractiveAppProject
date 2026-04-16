@@ -69,6 +69,9 @@ with st.container():
 
             current = st.session_state.meals_home.get(meal, "No meal planned yet")
 
+            if current == "No meal planned yet":
+                st.info("No meals have been scheduled yet.")
+
             st.markdown(f"**Your {meal.lower()} plan is:**")
             st.write(current)
 
@@ -121,6 +124,17 @@ with left:
         total = df["Price"].sum()
         st.write(f"**Total: ${round(total,2)}**")
 
+        budget = st.session_state.get("profile", {}).get("budget", "")
+
+        if str(budget).strip() != "":
+            try:
+                if total > float(budget):
+                    st.warning("Your grocery total exceeds your weekly budget.")
+            except:
+                st.error("Weekly budget is invalid. Please update it in Profile.")
+
+
+
         # toggle edit
         if "edit_grocery" not in st.session_state:
             st.session_state.edit_grocery = False
@@ -151,9 +165,14 @@ with left:
                         st.session_state.grocery_msg = ("warning", "Item already exists.")
                     else:
                         try:
-                            new_row = pd.DataFrame([[name, float(price_val)]], columns=["Item","Price"])
-                            st.session_state.grocery_df = pd.concat([df, new_row], ignore_index=True)
-                            st.session_state.grocery_msg = ("success", "Item added!")
+                            price_num = float(price_val)
+                            if price_num < 0:
+                                st.session_state.grocery_msg = ("error", "Price cannot be negative.")
+                            else:
+                                new_row = pd.DataFrame([[name, float(price_val)]], columns=["Item","Price"])
+                                st.session_state.grocery_df = pd.concat([df, new_row], ignore_index=True)
+                                st.session_state.grocery_msg = ("success", "Item added!")
+                                st.toast("Item added to grocery list!")
                         except:
                             st.session_state.grocery_msg = ("error", "Price must be a number.")
                     st.rerun()
@@ -171,8 +190,12 @@ with left:
 
                         if len(idx) > 0:
                             try:
-                                st.session_state.grocery_df.loc[idx[0], "Price"] = float(price_val)
-                                st.session_state.grocery_msg = ("success", "Item updated!")
+                                price_num = float(price_val)
+                                if price_num < 0:
+                                    st.session_state.grocery_msg = ("error", "Price cannot be negative.")
+                                else:
+                                    st.session_state.grocery_df.loc[idx[0], "Price"] = float(price_val)
+                                    st.session_state.grocery_msg = ("success", "Item updated!")
                             except:
                                 st.session_state.grocery_msg = ("error", "Price must be a number.")
                         else:

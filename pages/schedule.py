@@ -78,11 +78,16 @@ with tab1:
             meal_list = meals_data.get(selected_meal, [])
             meal_names = [meal["name"] for meal in meal_list] 
 
-            meal_choice = st.selectbox(
-                "Choose Meal",
-                meal_names, # depends on list of users generated meals 
-                key="meal_option_select" # key ensures correct update when meal type changes
-            )
+            if not meal_names:
+                st.warning("No meal options available yet. Go to the Meals page and generate some first.")
+                meal_choice = None
+
+            else:
+                meal_choice = st.selectbox(
+                    "Choose Meal",
+                    meal_names, # depends on list of users generated meals 
+                    key="meal_option_select" # key ensures correct update when meal type changes
+                )
 
         action = st.radio("Action", ["Add/Edit","Delete"], key="meal_action", horizontal=True)
 
@@ -91,11 +96,12 @@ with tab1:
             meal_name = meal_choice
 
             if st.button("Save Meal", key="save_meal_btn"):
-                if meal_name.strip() == "":
+                if meal_name is None:
                     st.error("Please enter a meal before saving.")
                 else:
                     st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_name
                     st.session_state.message = "Meal saved successfully!"
+                    st.toast("Meal added to schedule")
                     st.rerun()
 
         else:
