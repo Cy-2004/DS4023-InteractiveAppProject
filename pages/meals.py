@@ -275,6 +275,13 @@ for i, meal in enumerate(meals):
         else:
             st.write("Nutrition information not available.")
 
+        # contains
+        contains = meal.get("contains")
+        if contains:
+            st.markdown("**Contains:**")
+            for ing in meal["contains"]:
+                st.write(f"- {ing}")
+
         # action buttons
         col1, col2 = st.columns(2)
 

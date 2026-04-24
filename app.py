@@ -43,6 +43,10 @@ pages = {
         st.Page("pages/analytics/spending.py", title="Spending", icon="💰"),
     ],
 
+    "Assistant": [
+        st.Page("pages/assistant.py", title="Assistant", icon="🤖"),
+    ],
+
     "Account": [
         st.Page("pages/profile.py", title="Profile", icon="👤"),
     ]

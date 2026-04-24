@@ -16,6 +16,8 @@ data = {
 
 df = pd.DataFrame(data)
 
+st.session_state.nutrition_df = df
+
 # layout
 col1, col2 = st.columns([3,1])
 
