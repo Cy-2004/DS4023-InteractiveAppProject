@@ -24,7 +24,7 @@ if "meals_data" not in st.session_state:
                 "prep_time": "10 mins",
                 "ingredients": ["2 cups lettuce", "1 cup shredded chicken", "1 packet croutons", "1.5 tsp parmesan cheese", "2 tbsp caesar dressing"],
                 "directions": ["Mix lettuce, shredded chicken, and parmesan cheese.", "Add croutons and drizzle dressing. Mix well."],
-                'nutrition': {'Calories': '400', 'Protein': '22g', 'Sugar': '2g', 'Carbohydrates': '7g', 'Fiber': '1g'},
+                'nutrition': {'Calories': 400, 'Protein': 22, 'Sugar': 2, 'Carbohydrates': 7, 'Fiber': 1},
                 "contains": ["Dairy", "Poultry"]},
             {"id": 3,
                 "name": "Chipotle Chicken & Macaroni Salad",
@@ -32,7 +32,7 @@ if "meals_data" not in st.session_state:
                 "prep_time": "35 mins",
                 "ingredients": ["Chicken", "Macaroni", "Chipotle sauce"],
                 "directions": ["Cook pasta", "Mix with chicken and sauce"],
-                "nutrition": {'Calories': '290', 'Protein': '15g', 'Sugar': '1g', 'Carbohydrates': '30g', 'Fiber': '2g'},
+                "nutrition": {'Calories': 290, 'Protein': 15, 'Sugar': 1, 'Carbohydrates': 3, 'Fiber': 2},
                 "contains": ["Dairy"]},
             {"id": 4,
                 "name": "Tortilla Soup",
@@ -40,7 +40,7 @@ if "meals_data" not in st.session_state:
                 "prep_time": "30 mins",
                 "ingredients": ["Broth", "Chicken", "Tortillas"],
                 "directions": ["Boil broth", "Add ingredients"],
-                "nutrition": {'Calories': '270', 'Protein': '20g', 'Sugar': '1g', 'Carbohydrates': '15g', 'Fiber': '2g'},
+                "nutrition": {'Calories': 270, 'Protein': 20, 'Sugar': 1, 'Carbohydrates': 15, 'Fiber': 2},
                 "contains": []}
         ],
         # adding other to catch api errors/extra stuff 

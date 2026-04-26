@@ -5,7 +5,8 @@ from llm import ask_gemini
 st.title("NutriPlanner Assistant 🤖")
 
 # sample data
-df = st.session_state.get("nutrition_log")
+df = st.session_state.get("clean_nutri_log")
+st.dataframe(df)
 
 if df is None:
     st.warning("No nutrition data available yet. Visit Nutrition page first.")

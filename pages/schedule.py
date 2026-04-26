@@ -21,8 +21,7 @@ if "message" not in st.session_state:
     st.session_state.message = None
 
 if 'nutrition_log' not in st.session_state:
-    st.session_state.nutrition_log = pd.DataFrame(columns=["Date", "Day", "Meal", "Name",
-        "Calories", "Protein", "Sugar", "Carbohydrates", "Fiber"])
+    st.session_state.nutrition_log = pd.DataFrame(columns=["Date", "Day", "Meal", "Name", "nutrition"])
 
 # constants
 days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
@@ -96,8 +95,6 @@ with tab1:
         with col2:
             meal_key = MEAL_KEY_MAP.get(selected_meal, selected_meal) # get user selected meals from meals.py session state
             meal_list = st.session_state.meals_data.get(meal_key, [])
-            # meals_data = st.session_state.get("meals_data", {})  
-            # meal_list = meals_data.get(selected_meal, [])
             meal_names = [meal["name"] for meal in meal_list] 
 
             if not meal_names:
@@ -122,7 +119,6 @@ with tab1:
             st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_choice 
             
             # save all meal info
-            # selected_meal_data = next((m for m in meal_list if m['name'] == meal_choice), None)
             selected_meal_data = next(
                 (m for m in meal_list if m["name"].strip().lower() == meal_choice.strip().lower()), None)
 
@@ -132,6 +128,7 @@ with tab1:
                 day_index = days.index(selected_day)
                 meal_date = start_of_week + timedelta(days=day_index)
 
+                # st.write("selected meal data", selected_meal_data)
                 # create new row
                 new_row = pd.DataFrame([
                     {"Date": pd.to_datetime(meal_date),

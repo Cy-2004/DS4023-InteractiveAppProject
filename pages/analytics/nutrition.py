@@ -5,48 +5,52 @@ from datetime import date, timedelta
 
 st.title("Nutrition Facts", text_alignment="center")
 
+# make session state variable for cleaned nutrition df 
+if 'clean_nutri_log' not in st.session_state:
+    st.session_state.clean_nutri_log = pd.DataFrame(columns=["Date", "Day", 'Calories', 'Protein', 'Sugar', 'Carbohydrates', 'Fiber'])
+
+
 # create sample data 
 today = date.today()
 this_sunday = today - timedelta(days=(today.weekday() + 1) % 7)
 last_week_start = this_sunday - timedelta(days=7)
 
-# "Date": ["2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25"],
 sample_data = pd.DataFrame([
     {"Date": last_week_start + timedelta(days=0),
         "Day": "Sun",
         "Meal": "Breakfast",
         "Name": "Oatmeal",
-        "nutrition": {'Calories': '150', 'Protein': '5', 'Sugar': '1', 'Carbohydrates': '27', 'Fiber': '9'}}, 
+        "nutrition": {'Calories': 150, 'Protein': 5, 'Sugar': 1, 'Carbohydrates': 27, 'Fiber': 9}}, 
     {"Date": last_week_start + timedelta(days=1),
         "Day": "Mon",
         "Meal": "Breakfast",
         "Name": "Oatmeal",
-        "nutrition": {'Calories': '150', 'Protein': '5', 'Sugar': '1', 'Carbohydrates': '27', 'Fiber': '9'}}, 
+        "nutrition": {'Calories': 150, 'Protein': 5, 'Sugar': 1, 'Carbohydrates': 27, 'Fiber': 9}}, 
     {"Date": last_week_start + timedelta(days=2),
-        "Day": "Tues",
+        "Day": "Tue",
         "Meal": "Lunch",
         "Name": "Chipotle Chicken & Macaroni Salad",
-        "nutrition": {'Calories': '290', 'Protein': '15', 'Sugar': '1', 'Carbohydrates': '30', 'Fiber': '2'}},
+        "nutrition": {'Calories': 290, 'Protein': 15, 'Sugar': 1, 'Carbohydrates': 30, 'Fiber': 2}},
     {"Date": last_week_start + timedelta(days=3),
         "Day": "Wed",
         "Meal": "Dinner", 
         "Name": "Chicken Caesar Salad", 
-        "nutrition": {'Calories': '400', 'Protein': '22', 'Sugar': '2', 'Carbohydrates': '7', 'Fiber': '1'}},
+        "nutrition": {'Calories': 400, 'Protein': 22, 'Sugar': 2, 'Carbohydrates': 7, 'Fiber': 1}},
     {"Date": last_week_start + timedelta(days=4),
-        "Day": "Thurs", 
+        "Day": "Thu", 
         "Meal": "Lunch", 
         "Name": "Chicken Caesar Salad", 
-        "nutrition": {'Calories': '400', 'Protein': '22', 'Sugar': '2', 'Carbohydrates': '7', 'Fiber': '1'}},
+        "nutrition": {'Calories': 400, 'Protein': 22, 'Sugar': 2, 'Carbohydrates': 7, 'Fiber': 1}},
     {"Date": last_week_start + timedelta(days=5),
         "Day": "Fri", 
         "Meal": "Breakfast", 
         "Name": "Oatmeal",
-        "nutrition": {'Calories': '150', 'Protein': '15', 'Sugar': '1', 'Carbohydrates': '27', 'Fiber': '9'}}, 
+        "nutrition": {'Calories': 150, 'Protein': 15, 'Sugar': 1, 'Carbohydrates': 27, 'Fiber': 9}}, 
     {"Date": last_week_start + timedelta(days=6),
         "Day": "Sat",
         "Meal": "Dinner", 
         "Name": "Chicken Caesar Salad", 
-        "nutrition": {'Calories': '400', 'Protein': '22', 'Sugar': '2', 'Carbohydrates': '7', 'Fiber': '1'}},
+        "nutrition": {'Calories': 400, 'Protein': 22, 'Sugar': 2, 'Carbohydrates': 7, 'Fiber': 1}},
 ])
 
 # check session state 
@@ -64,6 +68,54 @@ df = st.session_state.nutrition_log.copy()
 df["Date"] = pd.to_datetime(df["Date"])
 df["Week"] = df["Date"].dt.to_period("W-SUN")
 
+display_df = df.copy()
+display_df["Date"] = display_df["Date"].dt.date
+
+# display_df[nutrient] = display_df["nutrition"].apply(
+#             lambda x: int(x.get(nutrient, 0)) if isinstance(x, dict) else 0)
+# remove unnecessary nutrient rows 
+# cols_dropping = []
+# if 'Calories' in display_df.columns and nutrient != 'Calories':
+#     cols_dropping.append('Calories')
+# if 'Protein' in display_df.columns and nutrient != 'Protein':
+#     cols_dropping.append('Protein')
+# if 'Sugar' in display_df.columns and nutrient != 'Sugar':
+#     cols_dropping.append('Sugar')
+# if 'Carbohydrates' in display_df.columns and nutrient != 'Carbphydrates':
+#     cols_dropping.append('Carbohydrates')
+# if 'Fiber' in display_df.columns and nutrient != 'Fiber':
+#     cols_dropping.append('Fiber')
+
+# display_df = display_df.drop(columns=cols_dropping)
+display_df = display_df[display_df["Day"].notna()]
+
+# expand nested nutrition dict into columns
+nutrition_df = pd.json_normalize(display_df["nutrition"]).fillna(0)
+
+## combine with main dataframe
+final_df = pd.concat([display_df.drop(columns=["nutrition", "Meal", "Name"]), nutrition_df], axis=1)  
+if final_df.columns.duplicated().any():
+    final_df = final_df.loc[:, ~final_df.columns.duplicated()]
+
+# grouping values by day so one row per day 
+final_df['Day'] = final_df['Day'].astype(str) 
+final_df = final_df.groupby(["Week", "Day"], as_index=False).agg({
+    "Date": "first",
+    "Calories": "sum",
+    "Protein": "sum",
+    "Sugar": "sum",
+    "Carbohydrates": "sum",
+    "Fiber": "sum"})
+
+# sorting days and weeks to be in order 
+day_order = {"Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6}
+final_df["day_sort"] = final_df["Day"].map(day_order)
+final_df = final_df.sort_values(["Week", "day_sort"]).drop(columns=['day_sort']) 
+# save final cleaned df to session state 
+st.session_state.clean_nutri_log = final_df 
+
+
+
 # layout
 col1, col2 = st.columns([3,1])
 
@@ -79,8 +131,8 @@ with col2:
 
     selected_week = st.selectbox("Select a week:", sorted(week_options), key='selected_week')
 
-
-filtered_df = df[df["Week"].astype(str) == selected_week]
+filtered_df = final_df[final_df["Week"].astype(str) == selected_week]
+filtered_df = filtered_df.drop(columns=['Week'])
 
 # graph
 with col1:
@@ -110,13 +162,10 @@ with col1:
 
     # bar chart
     fig, ax = plt.subplots()
-    filtered_df[nutrient] = filtered_df["nutrition"].apply(
-            lambda x: int(x.get(nutrient, 0)) if isinstance(x, dict) else 0)
-    ax.bar(
-        filtered_df["Day"],
+    
+    ax.bar(filtered_df["Day"].astype(str),
         filtered_df[nutrient],
-        color=colors[nutrient]
-    )
+        color=colors[nutrient])
 
     # axis labels
     ax.set_xlabel("Day of the Week")
@@ -125,39 +174,9 @@ with col1:
     ax.set_xticks(range(len(filtered_df["Day"])))
     ax.set_xticklabels(filtered_df["Day"])
 
+
     st.pyplot(fig)
 
 # add nutrition table below to show this week's all nutrition facts 
 st.markdown("### Weekly Nutrition Table")
-
-display_df = filtered_df.copy()
-display_df["Date"] = display_df["Date"].dt.date
-# remove unnecessary nutrient rows 
-cols_dropping = []
-if 'Calories' in display_df.columns and nutrient != 'Calories':
-    cols_dropping.append('Calories')
-if 'Protein' in display_df.columns and nutrient != 'Protein':
-    cols_dropping.append('Protein')
-if 'Sugar' in display_df.columns and nutrient != 'Sugar':
-    cols_dropping.append('Sugar')
-if 'Carbohydrates' in display_df.columns and nutrient != 'Carbphydrates':
-    cols_dropping.append('Carbohydrates')
-if 'Fiber' in display_df.columns and nutrient != 'Fiber':
-    cols_dropping.append('Fiber')
-
-display_df.drop(columns=cols_dropping)
-
-st.markdown("Display df")
-st.dataframe(display_df)
-
-# expand nested nutrition dict into columns
-nutrition_df = display_df["nutrition"].apply(pd.Series)
-st.markdown("Nutrition df")
-st.dataframe(nutrition_df)
-
-## combine with main dataframe
-display_df = pd.concat([display_df.drop(columns=["nutrition", "Meal", "Name", "Week"]), nutrition_df], axis=1)  
-if display_df.columns.duplicated().any():
-    display_df = display_df.loc[:, ~display_df.columns.duplicated()]
-
-st.dataframe(display_df, use_container_width=True)
+st.dataframe(filtered_df, use_container_width=True)
