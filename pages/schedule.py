@@ -27,6 +27,11 @@ if 'nutrition_log' not in st.session_state:
 # constants
 days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
 meals = ["Breakfast","Lunch","Dinner"]
+# mapping for later session state calling 
+MEAL_KEY_MAP = {
+    "Breakfast": "Breakfast",
+    "Lunch": "Lunch/Dinner",
+    "Dinner": "Lunch/Dinner"}
 
 # style
 st.markdown("""
@@ -64,20 +69,16 @@ with tab1:
     # adding date to display 
     from datetime import date, timedelta
     today = date.today()
-    # this_sunday = today - timedelta(days=(today.weekday() + 1) % 7)
-    # start_of_week = this_sunday - timedelta(days=7)
     start_of_week = today - timedelta(days=(today.weekday() + 1) % 7)
     date_map = {
         day: (start_of_week + timedelta(days=i)).strftime("%m/%d")
         for i, day in enumerate(days)}
 
-    # meal_df = pd.DataFrame("", index=meals, columns=days)
     meal_df = pd.DataFrame("",
         index=meals,
         columns=[f"{day}\n{date_map[day]}" for day in days])
 
     for (day, meal), value in st.session_state.meal_schedule.items():
-        # meal_df.loc[meal, day] = value
         meal_df.loc[meal, f"{day}\n{date_map[day]}"] = value
 
     st.data_editor(meal_df, use_container_width=True, disabled=True)
@@ -93,8 +94,10 @@ with tab1:
         with col1:
             selected_meal = st.selectbox("Select Meal", meals, key="meal_type")
         with col2:
-            meals_data = st.session_state.get("meals_data", {}) # get user selected meals from meals.py session state 
-            meal_list = meals_data.get(selected_meal, [])
+            meal_key = MEAL_KEY_MAP.get(selected_meal, selected_meal) # get user selected meals from meals.py session state
+            meal_list = st.session_state.meals_data.get(meal_key, [])
+            # meals_data = st.session_state.get("meals_data", {})  
+            # meal_list = meals_data.get(selected_meal, [])
             meal_names = [meal["name"] for meal in meal_list] 
 
             if not meal_names:
@@ -110,48 +113,49 @@ with tab1:
 
         action = st.radio("Action", ["Add/Edit","Delete"], key="meal_action", horizontal=True)
 
+        # function for save meal to perform callback on 
+        def save_meal():
+            if meal_choice is None:
+                st.error("Please enter a meal before saving.")
+                return 
+            # save to schedule 
+            st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_choice 
+            
+            # save all meal info
+            # selected_meal_data = next((m for m in meal_list if m['name'] == meal_choice), None)
+            selected_meal_data = next(
+                (m for m in meal_list if m["name"].strip().lower() == meal_choice.strip().lower()), None)
+
+            if selected_meal_data:
+                # convert day to actual date
+                start_of_week = date.today() - timedelta(days=(date.today().weekday() + 1) % 7)
+                day_index = days.index(selected_day)
+                meal_date = start_of_week + timedelta(days=day_index)
+
+                # create new row
+                new_row = pd.DataFrame([
+                    {"Date": pd.to_datetime(meal_date),
+                    "Day": selected_day,
+                    "Meal": selected_meal,
+                    "Name": meal_choice,
+                    "nutrition": selected_meal_data.get("nutrition", None)}
+                   ])
+
+                # append to nutrition log
+                st.session_state.nutrition_log = pd.concat(
+                    [st.session_state.nutrition_log, new_row],
+                    ignore_index=True)
+                st.session_state.message = "Meal saved successfully!"
+                st.toast("Meal added to schedule")
+
+            else:
+                st.error("Meal nutrition not found.")
+                return 
+
         if action == "Add/Edit":
-            # meal_name = st.text_input("Enter Meal")
             meal_name = meal_choice
 
-            if st.button("Save Meal", key="save_meal_btn"):
-                if meal_name is None:
-                    st.error("Please enter a meal before saving.")
-                else:
-                    st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_name
-                    
-                    # save all meal info
-                    selected_meal_data = next((m for m in meal_list if m['name'] == meal_choice), None)
-                    if selected_meal_data:
-                        # convert day to actual date
-                        start_of_week = date.today() - timedelta(days=date.today().weekday() + 1)
-                        day_index = days.index(selected_day)
-                        meal_date = start_of_week + timedelta(days=day_index)
-
-                        # create new row
-                        new_row = pd.DataFrame({
-                            "Date": [pd.to_datetime(meal_date)],
-                            "Day": [selected_day],
-                            "Meal": [selected_meal],
-                            "Name": [meal_name],
-                            "Calories": [selected_meal_data.get("Calories", 0)],
-                            "Protein": [selected_meal_data.get("Protein", 0)],
-                            "Sugar": [selected_meal_data.get("Sugar", 0)],
-                            "Carbohydrates": [selected_meal_data.get("Carbohydrates", 0)],
-                            "Fiber": [selected_meal_data.get("Fiber", 0)]
-                        })
-                        st.markdown(new_row)
-
-                        # append to nutrition log
-                        st.session_state.nutrition_log = pd.concat(
-                            [st.session_state.nutrition_log, new_row],
-                            ignore_index=True)
-                    else:
-                        st.error("Meal nutrition not found.")
-
-                    st.session_state.message = "Meal saved successfully!"
-                    st.toast("Meal added to schedule")
-                    st.rerun()
+            st.button("Save Meal", key="save_meal_btn", on_click=save_meal)
 
         else:
             if st.button("Delete Meal", key="delete_meal_btn"):

@@ -14,7 +14,7 @@ if "meals_data" not in st.session_state:
             'prep_time': '5 mins',
             'ingredients': ['1/2 cup oats', '1 cup water'],
             'directions': ['Boil water', 'Add oats and simmer for 5 mins'],
-            'nutrition': {'Calories': '150', 'Protein': '5g', 'Sugar': '1g', 'Carbohydrates': '27g', 'Fiber': '9g'},
+            'nutrition': {'Calories': 150, 'Protein': 5, 'Sugar': 1, 'Carbohydrates': 27, 'Fiber': 9},
             'contains': []}
         ], 
         "Lunch/Dinner": [
@@ -46,6 +46,13 @@ if "meals_data" not in st.session_state:
         # adding other to catch api errors/extra stuff 
         "Other": []
     }
+
+# adding map for later session state calling 
+MEAL_KEY_MAP = {
+    "Breakfast": "Breakfast",
+    "Lunch": "Lunch/Dinner",
+    "Dinner": "Lunch/Dinner"
+}
 
 if "deleted_meal" not in st.session_state:
     st.session_state.deleted_meal = None
@@ -177,12 +184,6 @@ if st.button("Generate Meals", key="generate_meals_btn"):
             bulk_details = get_recipe_info(tuple(new_ids))
         else:
             bulk_details = {}
-
-        # for r in results.get('results', []):
-        #     recipe_id = r.get("id")
-        #     if recipe_id not in existing_ids[classified_type]:
-        #         new_ids.append(recipe_id)
-        # bulk_details = get_recipe_info(new_ids)
 
         for r in results.get('results', []):
             # classify meal type 
