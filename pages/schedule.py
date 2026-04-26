@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import date, timedelta 
 
 st.title("Schedule", text_alignment="center")
 
@@ -18,6 +19,10 @@ if "edit_class" not in st.session_state:
 
 if "message" not in st.session_state:
     st.session_state.message = None
+
+if 'nutrition_log' not in st.session_state:
+    st.session_state.nutrition_log = pd.DataFrame(columns=["Date", "Day", "Meal", "Name",
+        "Calories", "Protein", "Sugar", "Carbohydrates", "Fiber"])
 
 # constants
 days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
@@ -56,10 +61,24 @@ with tab1:
         if st.button("Edit Meals"):
             st.session_state.edit_meal = not st.session_state.edit_meal
 
-    meal_df = pd.DataFrame("", index=meals, columns=days)
+    # adding date to display 
+    from datetime import date, timedelta
+    today = date.today()
+    # this_sunday = today - timedelta(days=(today.weekday() + 1) % 7)
+    # start_of_week = this_sunday - timedelta(days=7)
+    start_of_week = today - timedelta(days=(today.weekday() + 1) % 7)
+    date_map = {
+        day: (start_of_week + timedelta(days=i)).strftime("%m/%d")
+        for i, day in enumerate(days)}
+
+    # meal_df = pd.DataFrame("", index=meals, columns=days)
+    meal_df = pd.DataFrame("",
+        index=meals,
+        columns=[f"{day}\n{date_map[day]}" for day in days])
 
     for (day, meal), value in st.session_state.meal_schedule.items():
-        meal_df.loc[meal, day] = value
+        # meal_df.loc[meal, day] = value
+        meal_df.loc[meal, f"{day}\n{date_map[day]}"] = value
 
     st.data_editor(meal_df, use_container_width=True, disabled=True)
 
@@ -100,6 +119,36 @@ with tab1:
                     st.error("Please enter a meal before saving.")
                 else:
                     st.session_state.meal_schedule[(selected_day, selected_meal)] = meal_name
+                    
+                    # save all meal info
+                    selected_meal_data = next((m for m in meal_list if m['name'] == meal_choice), None)
+                    if selected_meal_data:
+                        # convert day to actual date
+                        start_of_week = date.today() - timedelta(days=date.today().weekday() + 1)
+                        day_index = days.index(selected_day)
+                        meal_date = start_of_week + timedelta(days=day_index)
+
+                        # create new row
+                        new_row = pd.DataFrame({
+                            "Date": [pd.to_datetime(meal_date)],
+                            "Day": [selected_day],
+                            "Meal": [selected_meal],
+                            "Name": [meal_name],
+                            "Calories": [selected_meal_data.get("Calories", 0)],
+                            "Protein": [selected_meal_data.get("Protein", 0)],
+                            "Sugar": [selected_meal_data.get("Sugar", 0)],
+                            "Carbohydrates": [selected_meal_data.get("Carbohydrates", 0)],
+                            "Fiber": [selected_meal_data.get("Fiber", 0)]
+                        })
+                        st.markdown(new_row)
+
+                        # append to nutrition log
+                        st.session_state.nutrition_log = pd.concat(
+                            [st.session_state.nutrition_log, new_row],
+                            ignore_index=True)
+                    else:
+                        st.error("Meal nutrition not found.")
+
                     st.session_state.message = "Meal saved successfully!"
                     st.toast("Meal added to schedule")
                     st.rerun()
