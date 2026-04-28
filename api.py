@@ -2,8 +2,8 @@ import streamlit as st
 import requests 
 
 # get api key from secrets.toml
-api_key = st.secrets["ILIANA_SPOONACULAR_API_KEY"] 
-# api_key = st.secrets.get("SPOONACULAR_API_KEY")
+# api_key = st.secrets["ILIANA_SPOONACULAR_API_KEY"] 
+api_key = st.secrets.get("SPOONACULAR_API_KEY")
 
 if not api_key:
     st.error("Missing Spoonacular API key in secrets.toml")
