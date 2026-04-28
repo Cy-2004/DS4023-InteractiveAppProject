@@ -14,7 +14,6 @@ st.button("Clear Chat", on_click=clear_chat)  # no st.rerun used
 
 # sample data
 df = st.session_state.get("clean_nutri_log")
-# st.dataframe(df)
 
 if df is None:
     st.warning("No nutrition data available yet. Visit Nutrition page first.")

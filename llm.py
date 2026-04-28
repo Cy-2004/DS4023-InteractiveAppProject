@@ -10,10 +10,16 @@ if not api_key:
 
 genai.configure(api_key=api_key)
 
-model = genai.GenerativeModel("gemini-2.5-flash-lite")
+# adding cache line to save resource 
+@st.cache_resource
+def get_model():
+    return genai.GenerativeModel("gemini-2.5-flash-lite")
 
+# adding cache line, with timeout to 1 hour 
+@st.cache_data(ttl=3600, show_spinner=False)
 def ask_gemini(system_prompt, user_prompt):
     try:
+        model = get_model() 
         response = model.generate_content([system_prompt,user_prompt])
         return response.text
 
