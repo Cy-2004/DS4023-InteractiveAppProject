@@ -21,7 +21,46 @@ if "message" not in st.session_state:
     st.session_state.message = None
 
 if "meals_data" not in st.session_state:
-    st.session_state.meals_data = {}
+    st.session_state.meals_data = {
+        "Breakfast": [
+            {'id': 1,
+            'name': 'Oatmeal', 
+            'cuisine': 'American',
+            'prep_time': '5 mins',
+            'ingredients': ['1/2 cup oats', '1 cup water'],
+            'directions': ['Boil water', 'Add oats and simmer for 5 mins'],
+            'nutrition': {'Calories': 150, 'Protein': 5, 'Sugar': 1, 'Carbohydrates': 27, 'Fiber': 9},
+            'contains': []}
+        ], 
+        "Lunch/Dinner": [
+            {"id": 2,
+                "name": "Chicken Caesar Salad",
+                "cuisine": "Italian",
+                "prep_time": "10 mins",
+                "ingredients": ["2 cups lettuce", "1 cup shredded chicken", "1 packet croutons", "1.5 tsp parmesan cheese", "2 tbsp caesar dressing"],
+                "directions": ["Mix lettuce, shredded chicken, and parmesan cheese.", "Add croutons and drizzle dressing. Mix well."],
+                'nutrition': {'Calories': 400, 'Protein': 22, 'Sugar': 2, 'Carbohydrates': 7, 'Fiber': 1},
+                "contains": ["Dairy", "Poultry"]},
+            {"id": 3,
+                "name": "Chipotle Chicken & Macaroni Salad",
+                "cuisine": "American",
+                "prep_time": "35 mins",
+                "ingredients": ["Chicken", "Macaroni", "Chipotle sauce"],
+                "directions": ["Cook pasta", "Mix with chicken and sauce"],
+                "nutrition": {'Calories': 290, 'Protein': 15, 'Sugar': 1, 'Carbohydrates': 3, 'Fiber': 2},
+                "contains": ["Dairy"]},
+            {"id": 4,
+                "name": "Tortilla Soup",
+                "cuisine": "Mexican",
+                "prep_time": "30 mins",
+                "ingredients": ["Broth", "Chicken", "Tortillas"],
+                "directions": ["Boil broth", "Add ingredients"],
+                "nutrition": {'Calories': 270, 'Protein': 20, 'Sugar': 1, 'Carbohydrates': 15, 'Fiber': 2},
+                "contains": []}
+        ],
+        # adding other to catch api errors/extra stuff 
+        "Other": []
+    }
 
 if 'nutrition_log' not in st.session_state:
     st.session_state.nutrition_log = pd.DataFrame(columns=["Date", "Day", "Meal", "Name", "nutrition"])
@@ -131,7 +170,7 @@ with tab1:
                 day_index = days.index(selected_day)
                 meal_date = start_of_week + timedelta(days=day_index)
 
-                # st.write("selected meal data", selected_meal_data)
+                st.write("selected meal data", selected_meal_data)
                 # create new row
                 new_row = pd.DataFrame([
                     {"Date": pd.to_datetime(meal_date),

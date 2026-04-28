@@ -91,6 +91,8 @@ display_df = display_df[display_df["Day"].notna()]
 
 # expand nested nutrition dict into columns
 nutrition_df = pd.json_normalize(display_df["nutrition"]).fillna(0)
+nutrition_df = nutrition_df.astype(str).apply(lambda col: col.str.extract(r'(\d+\.?\d*)')[0])
+nutrition_df = nutrition_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
 ## combine with main dataframe
 final_df = pd.concat([display_df.drop(columns=["nutrition", "Meal", "Name"]), nutrition_df], axis=1)  
@@ -114,7 +116,7 @@ final_df = final_df.sort_values(["Week", "day_sort"]).drop(columns=['day_sort'])
 # save final cleaned df to session state 
 st.session_state.clean_nutri_log = final_df 
 
-
+st.dataframe(final_df)
 
 # layout
 col1, col2 = st.columns([3,1])
