@@ -71,22 +71,6 @@ df["Week"] = df["Date"].dt.to_period("W-SUN")
 display_df = df.copy()
 display_df["Date"] = display_df["Date"].dt.date
 
-# display_df[nutrient] = display_df["nutrition"].apply(
-#             lambda x: int(x.get(nutrient, 0)) if isinstance(x, dict) else 0)
-# remove unnecessary nutrient rows 
-# cols_dropping = []
-# if 'Calories' in display_df.columns and nutrient != 'Calories':
-#     cols_dropping.append('Calories')
-# if 'Protein' in display_df.columns and nutrient != 'Protein':
-#     cols_dropping.append('Protein')
-# if 'Sugar' in display_df.columns and nutrient != 'Sugar':
-#     cols_dropping.append('Sugar')
-# if 'Carbohydrates' in display_df.columns and nutrient != 'Carbphydrates':
-#     cols_dropping.append('Carbohydrates')
-# if 'Fiber' in display_df.columns and nutrient != 'Fiber':
-#     cols_dropping.append('Fiber')
-
-# display_df = display_df.drop(columns=cols_dropping)
 display_df = display_df[display_df["Day"].notna()]
 
 # expand nested nutrition dict into columns and ensure is numeric values not strings 

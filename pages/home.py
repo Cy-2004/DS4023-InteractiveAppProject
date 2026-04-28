@@ -20,6 +20,8 @@ if "meal_schedule" in st.session_state:
 else:
     st.session_state.meal_schedule = {} 
 
+if 'clean_nutri_log' not in st.session_state:
+    st.session_state.clean_nutri_log = pd.DataFrame(columns=["Week", "Day", "Date", "Calories", "Protein", "Sugar", "Carbohydrates", "Fiber"])
 
 if "grocery_df" not in st.session_state:
     st.session_state.grocery_df = pd.DataFrame({
@@ -53,6 +55,33 @@ if st.session_state.home_msg:
         st.error(msg)
     st.session_state.home_msg = None
 
+
+# making callback functions for editting, saving, and deleting meals 
+def edit_meal(meal):
+    st.session_state[f"edit_toggle_{meal}"] = True
+
+def save_meal(meal):
+    val = st.session_state.get(f"input_{meal}", "").strip()
+    if val == "":
+        st.session_state.home_msg = ("error", f"{meal} cannot be empty.")
+        return
+
+    st.session_state.meals_home[meal] = val
+    st.session_state.home_msg = ("success", f"{meal} updated!")
+    st.session_state[f"edit_toggle_{meal}"] = False
+
+def delete_meal(meal):
+    # remove from home view 
+    st.session_state.meals_home[meal] = "No meal planned yet"
+    # remove from entire meal schedule too 
+    keys_to_remove = [key for key in st.session_state.meal_schedule.keys()
+                    if isinstance(key,tuple) and key[0] == day_name and key[1] == meal]
+    for key in keys_to_remove:
+        st.session_state.meal_schedule.pop(key, None)
+
+    st.session_state.home_msg = ("warning", f"{meal} deleted.")
+
+
 # today's schedule
 with st.container():
     st.markdown("<div class='blue-box'>", unsafe_allow_html=True)
@@ -74,53 +103,29 @@ with st.container():
 
             current = st.session_state.meals_home.get(meal, "No meal planned yet")
 
+            st.markdown(f"**Your {meal.lower()} plan is:**") 
+
             if current == "No meal planned yet":
-                st.info("No meals have been scheduled yet.")
+                st.info(current)
             else: 
-                st.markdown(f"**Your {meal.lower()} plan is:**")
                 st.write(current)
 
-            # toggle edit
-            if st.button("Edit", key=f"toggle_{meal}"):
-                st.session_state[toggle_key] = not st.session_state[toggle_key]
+            # edit button w callback 
+            st.button("Edit", key=f"toggle_{meal}", on_click=edit_meal, args=(meal,))
 
-            # edit
+            # edit mode 
             if st.session_state[toggle_key]:
-                new_val = st.text_input(
-                    "Edit meal",
-                    value="" if current == "No meal planned yet" else current,
-                    key=f"input_{meal}"
-                )
+                st.text_input("Edit meal", value="" if current == "No meal planned yet" else current,
+                                key=f"input_{meal}")
 
-                if st.button("Save", key=f"save_{meal}"):
-                    val = st.session_state.get(f"input_{meal}", "").strip()
-
-                    if val == "":
-                        st.session_state.home_msg = ("error", f"{meal} cannot be empty.")
-                    else:
-                        st.session_state.meals_home[meal] = val
-                        st.session_state.home_msg = ("success", f"{meal} updated!")
-                        st.session_state[f"edit_toggle_{meal}"] = False
-                    st.rerun()
+                st.button("Save", key=f"save_{meal}", on_click=save_meal, args=(meal,))
                 
-            # delete
-            if st.button("Delete", key=f"delete_{meal}"):
-                st.session_state.meals_home[meal] = "No meal planned yet"
-                st.session_state.home_msg = ("warning", f"{meal} deleted.")
-                st.rerun()
+            # delete button
+            st.button("Delete", key=f"delete_{meal}", on_click=delete_meal, args=(meal,))
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-st.write("st session state meal schedule ")
-df = st.session_state.meal_schedule
-st.dataframe(df)
-
-st.write("st session state meals home ")
-df2 = st.session_state.meals_home
-st.dataframe(df2)
-
 left, right = st.columns([1,1])
-
 # grocery list
 with left:
     with st.container():
@@ -261,10 +266,15 @@ with right:
         c1, c2, c3 = st.columns(3)
 
         with c1:
-            st.metric("Calories", "2110")
+            df = st.session_state.clean_nutri_log.copy() 
+            today_date = date.today() 
+
+            today_calories = df[df['Date'] == today_date]['Calories'].sum() 
+            st.metric("Today's Calories", f"{today_calories} kcal")
 
         with c2:
-            st.metric("Protein", "31g")
+            today_protein = df[df['Date'] == today_date]['Protein'].sum() 
+            st.metric("Today's Protein", f"{today_protein} g")
 
         with c3:
             st.metric("Spent", "$23")
