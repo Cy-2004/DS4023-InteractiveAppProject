@@ -61,11 +61,6 @@ if user_input := st.chat_input("Ask about your nutrition..."):
         st.warning("Your question is very long. Consider shortening it.")
         st.stop()
 
-    # keyword-based prompt injection defense
-    suspicious_phrases = ["ignore previous instructions", "disregard", "new role"]
-    if any(phrase in user_input.lower() for phrase in suspicious_phrases):
-        reply = "I can only help with nutrition and meal tracking questions."
-
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
@@ -86,6 +81,11 @@ if user_input := st.chat_input("Ask about your nutrition..."):
     # loading spinner
     with st.spinner("Thinking..."): # shows app is working
         reply = ask_gemini(system_prompt, prompt)
+
+    # keyword-based prompt injection defense
+    suspicious_phrases = ["ignore previous instructions", "disregard", "new role"]
+    if any(phrase in user_input.lower() for phrase in suspicious_phrases):
+        reply = "I can only help with nutrition and meal tracking questions."
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
 
