@@ -104,7 +104,7 @@ with tab1:
     with col1:
         st.subheader("Meal Schedule")
     with col2:
-        if st.button("Edit Meals"):
+        if st.button("Add Meals"):
             st.session_state.edit_meal = not st.session_state.edit_meal
 
     # adding date to display 
@@ -126,7 +126,7 @@ with tab1:
 
     # edit panel
     if st.session_state.edit_meal:
-        st.markdown("### Edit Meal")
+        st.markdown("### Add Meal")
 
         selected_day = st.radio("Select Day", days, key="meal_day", horizontal=True)
 

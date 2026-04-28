@@ -34,8 +34,7 @@ pages = {
     ],
 
     "Preferences": [
-        st.Page("pages/preferences/cuisine.py", title="Cuisine Preferences", icon="🍜"),
-        st.Page("pages/preferences/dietary.py", title="Dietary Restrictions", icon="🥑"),
+        st.Page("pages/preferences/cuisine_dietary.py", title="Cuisine and Dietary Restrictions", icon="🍜"),
     ],
 
     "Analytics": [
