@@ -4,6 +4,14 @@ from llm import ask_gemini
 
 st.title("NutriPlanner Assistant 🤖")
 
+# clear chat functionality
+def clear_chat():
+    st.session_state.messages = [] # reset chat history
+    if "chat" in st.session_state:
+        del st.session_state["chat"] # clear any cached LLM state if used later
+
+st.button("Clear Chat", on_click=clear_chat)  # no st.rerun used
+
 # sample data
 df = st.session_state.get("clean_nutri_log")
 # st.dataframe(df)
@@ -44,6 +52,20 @@ for msg in st.session_state.messages:
 # input
 if user_input := st.chat_input("Ask about your nutrition..."):
 
+    # input validation
+    if not user_input.strip(): # empty or whitespace
+        st.warning("Please enter a valid question.")
+        st.stop()
+
+    if len(user_input) > 2000: # long prompt warning
+        st.warning("Your question is very long. Consider shortening it.")
+        st.stop()
+
+    # keyword-based prompt injection defense
+    suspicious_phrases = ["ignore previous instructions", "disregard", "new role"]
+    if any(phrase in user_input.lower() for phrase in suspicious_phrases):
+    reply = "I can only help with nutrition and meal tracking questions."
+
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
@@ -61,7 +83,9 @@ if user_input := st.chat_input("Ask about your nutrition..."):
     Question: {user_input}
     """
 
-    reply = ask_gemini(system_prompt, prompt)
+    # loading spinner
+    with st.spinner("Thinking..."): # shows app is working
+        reply = ask_gemini(system_prompt, prompt)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
 
