@@ -177,7 +177,7 @@ with tab1:
                     "Day": selected_day,
                     "Meal": selected_meal,
                     "Name": meal_choice,
-                    "nutrition": selected_meal_data.get("nutrition", None)}
+                    "nutrition": selected_meal_data.get("nutrition", {})}
                    ])
 
                 # append to nutrition log
