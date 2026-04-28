@@ -12,7 +12,7 @@ if df is None:
     st.warning("No nutrition data available yet. Visit Nutrition page first.")
     st.stop()
 
-summary = dict(zip(df["Day"], df["Date"], df["Calories"], df['Protein']))
+summary = dict(zip(df["Day"], df["Calories"]))
 
 # system prompt
 system_prompt = f"""
