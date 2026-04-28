@@ -64,7 +64,7 @@ if user_input := st.chat_input("Ask about your nutrition..."):
     # keyword-based prompt injection defense
     suspicious_phrases = ["ignore previous instructions", "disregard", "new role"]
     if any(phrase in user_input.lower() for phrase in suspicious_phrases):
-    reply = "I can only help with nutrition and meal tracking questions."
+        reply = "I can only help with nutrition and meal tracking questions."
 
     st.session_state.messages.append({"role": "user", "content": user_input})
 
