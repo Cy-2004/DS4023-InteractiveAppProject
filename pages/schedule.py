@@ -20,6 +20,9 @@ if "edit_class" not in st.session_state:
 if "message" not in st.session_state:
     st.session_state.message = None
 
+if "meals_data" not in st.session_state:
+    st.session_state.meals_data = {}
+
 if 'nutrition_log' not in st.session_state:
     st.session_state.nutrition_log = pd.DataFrame(columns=["Date", "Day", "Meal", "Name", "nutrition"])
 
