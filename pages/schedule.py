@@ -170,7 +170,7 @@ with tab1:
                 day_index = days.index(selected_day)
                 meal_date = start_of_week + timedelta(days=day_index)
 
-                st.write("selected meal data", selected_meal_data)
+                # st.write("selected meal data", selected_meal_data)
                 # create new row
                 new_row = pd.DataFrame([
                     {"Date": pd.to_datetime(meal_date),
