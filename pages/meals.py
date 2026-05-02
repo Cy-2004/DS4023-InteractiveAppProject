@@ -42,9 +42,9 @@ if "meals_data" not in st.session_state:
                 "directions": ["Boil broth", "Add ingredients"],
                 "nutrition": {'Calories': 270, 'Protein': 20, 'Sugar': 1, 'Carbohydrates': 15, 'Fiber': 2},
                 "contains": []}
-        ],
+        ]
         # adding other to catch api errors/extra stuff 
-        "Other": []
+        # "Other": []
     }
 
 # adding map for later session state calling 
@@ -176,7 +176,8 @@ if st.button("Generate Meals", key="generate_meals_btn"):
         existing_ids = {
             "Breakfast": set(),
             "Lunch/Dinner": set(),
-            "Other": set()}
+            # "Other": set()}
+        }
         all_existing_ids = set().union(*existing_ids.values())
         
         for classified_type, meals in st.session_state.meals_data.items():
@@ -206,7 +207,8 @@ if st.button("Generate Meals", key="generate_meals_btn"):
             elif any(x in types for x in ["lunch", "salad", "soup", "dinner", "main course", "main dish"]):
                 classified_type = "Lunch/Dinner"
             else: 
-                classified_type = "Other"
+                # classified_type = "Other"
+                classified_type = "Lunch/Dinner"
 
             # skip if meal already exists in session state meals data
             if r.get("id") in existing_ids[classified_meal_type]:

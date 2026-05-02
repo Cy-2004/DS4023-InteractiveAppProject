@@ -18,7 +18,7 @@ def get_model():
 # adding cache line, with timeout to 1 hour 
 @st.cache_data(ttl=3600, show_spinner=False)
 def ask_gemini(system_prompt, user_prompt):
-    try:
+    try: 
         model = get_model() 
         response = model.generate_content([system_prompt,user_prompt])
         return response.text
