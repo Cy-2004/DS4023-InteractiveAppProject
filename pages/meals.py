@@ -41,10 +41,7 @@ if "meals_data" not in st.session_state:
                 "ingredients": ["Broth", "Chicken", "Tortillas"],
                 "directions": ["Boil broth", "Add ingredients"],
                 "nutrition": {'Calories': 270, 'Protein': 20, 'Sugar': 1, 'Carbohydrates': 15, 'Fiber': 2},
-                "contains": []}
-        ]
-        # adding other to catch api errors/extra stuff 
-        # "Other": []
+                "contains": []}]
     }
 
 # adding map for later session state calling 
@@ -175,8 +172,7 @@ if st.button("Generate Meals", key="generate_meals_btn"):
         api_meals = {'Breakfast': [], 'Lunch/Dinner': [],'Other': []}
         existing_ids = {
             "Breakfast": set(),
-            "Lunch/Dinner": set(),
-            # "Other": set()}
+            "Lunch/Dinner": set()
         }
         all_existing_ids = set().union(*existing_ids.values())
         
@@ -206,8 +202,7 @@ if st.button("Generate Meals", key="generate_meals_btn"):
                 classified_type = "Breakfast"
             elif any(x in types for x in ["lunch", "salad", "soup", "dinner", "main course", "main dish"]):
                 classified_type = "Lunch/Dinner"
-            else: 
-                # classified_type = "Other"
+            else: # just classify everything else to lunch/dinner
                 classified_type = "Lunch/Dinner"
 
             # skip if meal already exists in session state meals data
@@ -239,26 +234,13 @@ if st.button("Generate Meals", key="generate_meals_btn"):
         # do session state stuff 
         for classified_type, meals_list in api_meals.items():
             st.session_state.meals_data[classified_type].extend(meals_list)
-        
-        # print number of meals generated depending on meal type selected 
-        # st.write("total meals:", total_meals)
-        # if total_meals > 0:
-        #     if meal_type == "Breakfast":
-        #         st.success(f"{len(api_meals['Breakfast'])} breakfast meals generated!")
-        #     elif meal_type == "Lunch":
-        #         st.success(f"{len(api_meals['Lunch/Dinner'])} lunch meals generated!")
-        # else:
-        #     st.warning("No meals found with the given preferences.")
 
-        st.write("meals data -----")
-        df = st.session_state.meals_data
-        st.write(df)        
-
+        # calculating generated meals to display 
         selected_category = MEAL_KEY_MAP[meal_type]
         generated_meals = api_meals.get(selected_category, [])
         count = len(generated_meals)
 
-        # display info message
+        # display info message w num of cuisine meals 
         if count > 0:
             if cuisine == 'All':
                 st.success(f'{count} {meal_type.lower()} meals generated')
