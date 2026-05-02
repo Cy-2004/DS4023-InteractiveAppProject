@@ -25,7 +25,7 @@ print(f'allergies: {allergies}')
 # caching API responses to reduce redundant calls and respect API rate limits
 # using ttl=10800 (3 hours) because recipe search results may not change frequently and this allows for a good balance between freshness and performance
 @st.cache_data(ttl=10800)
-def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=30, number=20):
+def get_recipes(query='', intolerances=None, diet=None, prep_time=30, number=20):
     url = f"{base_url}/recipes/complexSearch"
 
     params = {
@@ -37,8 +37,6 @@ def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=
     }
 
     # possible parameters for the query based on user preferences 
-    if cuisine:
-        params["cuisine"] = ",".join(cuisine) if isinstance(cuisine, list) else cuisine
     if diet and diet != "None":
         params["diet"] = diet.lower()
     if intolerances:
@@ -52,17 +50,21 @@ def get_recipes(query='', cuisine=None, intolerances=None, diet=None, prep_time=
         # for invalid API key 
         if response.status_code == 401: 
             st.warning('API key is missing or invalid. ')
+            st.stop() 
         # not found error 
         elif response.status_code == 404:
             st.warning('No results found for your search')
+            st.stop() 
         # rate limit 
         elif response.status_code == 429:
             st.warning('API rate limit exceeded. Please try again later.')
+            st.stop() 
         
         # empty results 
         elif not data.get('results'):
             st.warning('Your search returned no results.')
             data = [] 
+            st.stop() 
 
         else: 
             st.success(f'API recipe call was successful')
