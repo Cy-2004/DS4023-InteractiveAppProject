@@ -86,7 +86,9 @@ NutriPlanner/
     └── secrets.toml
 ```
 
-## Link to deployed app: https://bz58qe2ves8crmekdpnuqb.streamlit.app/
+## Link to deployed app
+
+https://bz58qe2ves8crmekdpnuqb.streamlit.app/
 
 If you would like to run it locally, follow the steps below:
 
